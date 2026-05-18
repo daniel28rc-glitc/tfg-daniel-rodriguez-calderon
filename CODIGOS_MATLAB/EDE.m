@@ -6,126 +6,109 @@ close all; clear all; clc; tic;
 %% Parametros del Modelo
 
 % Parametros del Modelo (bajo P)
-r       = 0.05;
-kappa   = 2;
-theta   = 0.04;
-sigma   = 0.3;
-rho     = -0.5;
-mu      = r;
-lambda  = 0;
+r = 0.05;
+kappa = 2;
+theta = 0.04;
+sigma = 0.3;
+rho = -0.5;
+mu = r;
+lambda = 0;
 
 % Parametros de la Opcion
-K       = 80;
-T       = 1;
-S0      = 100;
-ups0    = 0.04;
+K = 80;
+T = 1;
+S0 = 100;
+ups0 = 0.04;
 
 % Parametros del Modelo (bajo Q)
 kappa_tilde = kappa + lambda*sigma;
 theta_tilde = (kappa*theta - rho*sigma*(mu - r))/kappa_tilde;
 
 % Parametros de Monte Carlo
-N_tray      = 10000;
-N_plot      = 1000;
-% N_rep       = 1000;
+N_tray = 10000;
+N_plot = 1000;
+% N_rep = 1000;
+
+% Numero de bloques para IC empirico 
+B_bloques = 20;               
+m = N_tray / B_bloques;
 
 % Parametros de Discretizacion Temporal
-n       = 1000;
-Deltat  = T / n;
-t       = linspace(0, T, (n + 1));
+n = 1000;
+Deltat = T / n;
+t = linspace(0, T, (n + 1));
 
 %% Simulacion de Trayectorias
 
 payoff_call = zeros(N_tray, 1);
-payoff_put  = zeros(N_tray, 1);
-S           = zeros((n + 1), 1);
-ups         = zeros((n + 1), 1);
+payoff_put = zeros(N_tray, 1);
+S = zeros((n + 1), 1);
+ups = zeros((n + 1), 1);
 
 S_plot = zeros((n + 1), N_plot);
 ups_plot = zeros((n + 1), N_plot);
 
 for n_tray = 1:N_tray
-    S(1)    = S0;
-    ups(1)  = ups0;
-    dW1     = sqrt(Deltat)*randn(n, 1);
-    dW2     = sqrt(Deltat)*randn(n, 1);
+    S(1) = S0;
+    ups(1) = ups0;
+    dW1 = sqrt(Deltat)*randn(n, 1);
+    dW2 = sqrt(Deltat)*randn(n, 1);
 
     for i = 1:n
         ups_iplus = max(ups(i), 0);
 
-        S(i+1)   = S(i) + r*S(i)*Deltat + sqrt(ups_iplus)*S(i)*dW1(i);
+        S(i+1) = S(i) + r*S(i)*Deltat + sqrt(ups_iplus)*S(i)*dW1(i);
         ups(i+1) = ups_iplus + kappa_tilde*(theta_tilde - ups_iplus)*Deltat ...
-                   + sigma*rho*sqrt(ups_iplus)*dW1(i) ...
-                   + sigma*sqrt((1 - rho^2)*ups_iplus)*dW2(i);
+            + sigma*rho*sqrt(ups_iplus)*dW1(i) ...
+            + sigma*sqrt((1 - rho^2)*ups_iplus)*dW2(i);
     end
 
     payoff_call(n_tray) = max(S(end) - K, 0);
     payoff_put(n_tray) = max(K - S(end), 0);
 
     if n_tray <= N_plot
-        S_plot(:, n_tray)   = S;
+        S_plot(:, n_tray) = S;
         ups_plot(:, n_tray) = ups;
     end
 end
 
 descuento = exp(-r*T);
-call      = descuento*mean(payoff_call);
-put       = descuento*mean(payoff_put);
+call = descuento*mean(payoff_call);
+put = descuento*mean(payoff_put);
 
 paridad_put_call = call - put - S0 + K*exp(-r*T);
 
 tiempo = toc;
 
-%% Intervalo de Confianza Numérico
+%% Intervalo de Confianza Numérico (teorico)
 
 destip_call = std(payoff_call);
-error_call  = 1.96*destip_call/sqrt(N_tray);
-IC_call     = [call - error_call, call + error_call];
+error_call = 1.96*destip_call/sqrt(N_tray);
+IC_call = [call - error_call, call + error_call];
 
 destip_put = std(payoff_put);
-error_put  = 1.96*destip_put/sqrt(N_tray);
-IC_put     = [put - error_put, put + error_put];
+error_put = 1.96*destip_put/sqrt(N_tray);
+IC_put = [put - error_put, put + error_put];
 
-%% Intervalo de confianza empirico del estimador 
+%% Intervalo de confianza empirico del estimador (por bloques, sin remuestreo)
 
-%{
-call_rep = zeros(N_rep,1);
-put_rep  = zeros(N_rep,1);
+precio_call_tray = descuento*payoff_call;
+precio_put_tray  = descuento*payoff_put;
 
-for k = 1:N_rep
-    payoff_call_k = zeros(N_tray,1);
-    payoff_put_k  = zeros(N_tray,1);
-    S_local   = zeros(n+1,1);
-    ups_local = zeros(n+1,1);
+call_bloques = zeros(B_bloques,1);
+put_bloques  = zeros(B_bloques,1);
 
-    for n_tray_k = 1:N_tray
-        S_local(1)   = S0;
-        ups_local(1) = ups0;
-        dW1 = sqrt(Deltat)*randn(n,1);
-        dW2 = sqrt(Deltat)*randn(n,1);
-
-        for i = 1:n
-            ups_iplus = max(ups_local(i),0);
-            S_local(i+1) = S_local(i) + r*S_local(i)*Deltat ...
-                           + sqrt(ups_iplus)*S_local(i)*dW1(i);
-            ups_local(i+1) = ups_iplus + kappa_tilde*(theta_tilde - ups_iplus)*Deltat ...
-                             + sigma*rho*sqrt(ups_iplus)*dW1(i) ...
-                             + sigma*sqrt((1 - rho^2)*ups_iplus)*dW2(i);
-        end
-
-        payoff_call_k(n_tray_k) = max(S_local(end) - K, 0);
-        payoff_put_k(n_tray_k)  = max(K - S_local(end), 0);
-    end
-
-    call_rep(k) = descuento*mean(payoff_call_k);
-    put_rep(k)  = descuento*mean(payoff_put_k);
+for b = 1:B_bloques
+    idx_ini = (b-1)*m + 1;
+    idx_fin = b*m;
+    call_bloques(b) = mean(precio_call_tray(idx_ini:idx_fin));
+    put_bloques(b)  = mean(precio_put_tray(idx_ini:idx_fin));
 end
 
-IC_emp_call = prctile(call_rep,[2.5 97.5]);
-IC_emp_put  = prctile(put_rep,[2.5 97.5]);
-call_mediana = median(call_rep);
-put_mediana  = median(put_rep);
-%}
+IC_emp_call = prctile(call_bloques,[2.5 97.5]);
+IC_emp_put  = prctile(put_bloques,[2.5 97.5]);
+call_mediana = median(call_bloques);
+put_mediana  = median(put_bloques);
 
 %% Registro de Trayectorias de Muestra y Estadísticas
 
@@ -156,13 +139,13 @@ fill([t, fliplr(t)], [S_med.' + S_destip.', fliplr(S_med.' - S_destip.')], ...
     [0.6, 0.6, 0.6], 'FaceAlpha', 0.15, 'EdgeColor', 'none');
 fill1 = fill([t, fliplr(t)], [S_med.' + S_destip.', fliplr(S_med.' + S_destip.')], ...
     [0.6, 0.6, 0.6], 'FaceAlpha', 0.15, 'EdgeColor', 'none');
-plot(t, S_med, 'Color', [0.1, 0.1, 0.1]); 
+plot(t, S_med, 'Color', [0.1, 0.1, 0.1]);
 plot2 = plot(t, S_med, 'Color', [0.1, 0.1, 0.1]);
 yline(K, '--', 'Color', [0.2, 0.2, 0.2]);
 yline1 = yline(K, '--', 'Color', [0.2, 0.2, 0.2]);
-xlabel('$t$', 'Interpreter', 'latex'); ylabel('$S_t$', 'Interpreter', 'latex'); 
+xlabel('$t$', 'Interpreter', 'latex'); ylabel('$S_t$', 'Interpreter', 'latex');
 %title('Trayectorias $S_t$', 'Interpreter', 'latex');
-axis square; 
+axis square;
 legend([plot1, fill1, plot2, yline1], ...
     {'Trays. $S_t$','$[\bar{S}_t-\hat{\sigma}_{S_t},\ \bar{S}_t+\hat{\sigma}_{S_t}]$', '$\bar{S}_t$', '$K$'}, ...
     'Interpreter', 'latex', 'FontSize', 10);
@@ -172,15 +155,15 @@ for n_plot = 1:N_plot
     plot(t, ups_plot(:, n_plot), 'Color', [[0.0 0.25 0.52], 1], 'LineWidth', 0.05);
     plot1 = plot(t, ups_plot(:, n_plot), 'Color', [[0.0 0.25 0.52], 1], 'LineWidth', 0.05);
 end
-plot(t, ups_med, 'Color', [0.3 0.3 0.3]); 
-plot2 = plot(t, ups_med, 'Color', [0.3 0.3 0.3]); 
-yline(theta_tilde, '--', 'Color', [0.4 0.4 0.4]); 
+plot(t, ups_med, 'Color', [0.3 0.3 0.3]);
+plot2 = plot(t, ups_med, 'Color', [0.3 0.3 0.3]);
+yline(theta_tilde, '--', 'Color', [0.4 0.4 0.4]);
 yline1 = yline(theta_tilde, '--', 'Color', [0.4 0.4 0.4]);
 yline(ups0, ':', 'Color', [0.1 0.1 0.1]);
 yline2 = yline(ups0, ':', 'Color', [0.1 0.1 0.1]);
-xlabel('$t$', 'Interpreter', 'latex'); 
+xlabel('$t$', 'Interpreter', 'latex');
 ylabel('$\upsilon_t$', 'Interpreter', 'latex');
-%title('Trayectorias $\upsilon_t$', 'Interpreter', 'latex');
+%title('Trayectorias $\\upsilon_t$', 'Interpreter', 'latex');
 axis square;
 legend([plot1, plot2, yline1, yline2], ...
     {'Trays. $\upsilon_t$', '$\bar{\upsilon}_t$', '$\tilde{\theta}$', '$\upsilon_0$'}, ...
@@ -188,13 +171,13 @@ legend([plot1, plot2, yline1, yline2], ...
 
 figure(1); subplot(1,2,2); hold on; grid on;
 histogram(S_T, 80, 'Normalization', 'count', 'FaceColor', [0.1 0.35 0.62], 'EdgeColor', 'w');
-xline(K, '--', 'Color', [0.3, 0.3, 0.3]); 
-xline(mean(S_T), '-', 'Color', [0.2, 0.2, 0.2]); 
+xline(K, '--', 'Color', [0.3, 0.3, 0.3]);
+xline(mean(S_T), '-', 'Color', [0.2, 0.2, 0.2]);
 xline(median(S_T), ':', 'Color', [0.5, 0.5, 0.5]); axis square;
-xlabel('$S_T$', 'Interpreter', 'latex'); 
-ylabel('$n_k$', 'Interpreter', 'latex'); 
+xlabel('$S_T$', 'Interpreter', 'latex');
+ylabel('$n_k$', 'Interpreter', 'latex');
 %title(sprintf('Distribucion $S_t$ - %d trayectorias', N_tray), ...
-    %'Interpreter', 'latex'); axis square;
+%'Interpreter', 'latex'); axis square;
 legend({'$\# S_T$', '$K$', '$\bar{S_T}$', '$\tilde{S_T}$'}, ...
     'Interpreter', 'latex', 'FontSize', 10);
 
@@ -207,18 +190,18 @@ figure(2); subplot(1,2,2); hold on; grid on;
 histogram(ups_T, 30, 'Normalization', 'count', 'FaceColor', [0.1 0.35 0.62], 'EdgeColor', 'w');
 %plot(x_cir, pdf_cir, 'k', 'LineWidth', 2);
 xline(theta_tilde, '--', 'Color', [0.3, 0.3, 0.3]); axis square;
-xlabel('$\upsilon_T$', 'Interpreter', 'latex'); 
-ylabel('$n_k$', 'Interpreter', 'latex'); 
+xlabel('$\upsilon_T$', 'Interpreter', 'latex');
+ylabel('$n_k$', 'Interpreter', 'latex');
 %title(sprintf('Distribucion $\\upsilon_t$ - %d trayectorias', N_tray), ...
-    %'Interpreter', 'latex'); axis square;
+%'Interpreter', 'latex'); axis square;
 legend({'$\# \upsilon_T$', '$\tilde{\theta}$'}, ...
     'Interpreter', 'latex', 'FontSize', 10);
 
 figure(3); subplot(1,2,1); hold on; grid on;
 call_conv = descuento*cumsum(payoff_call)./(1:N_tray).';
 semilogx(1:N_tray, call_conv, 'Color', [0.9, 0.4, 0.4]);
-yline(call, '--', 'Color', [0.4, 0.4, 0.4]); 
-xlabel('$n_{T}$', 'Interpreter', 'latex'); 
+yline(call, '--', 'Color', [0.4, 0.4, 0.4]);
+xlabel('$n_{T}$', 'Interpreter', 'latex');
 ylabel('$C_0$', 'Interpreter', 'latex');
 %title('Convergencia del Estimador de Monte Carlo');
 axis square;
@@ -227,9 +210,9 @@ legend({'$C_0^{n_{T}}$', '$C_0^{N_{T}}$'}, ...
 
 figure(3); subplot(1,2,2); hold on; grid on;
 put_conv = descuento*cumsum(payoff_put)./(1:N_tray).';
-semilogx(1:N_tray, put_conv, 'Color', [0.4, 0.8, 0.4]); 
+semilogx(1:N_tray, put_conv, 'Color', [0.4, 0.8, 0.4]);
 yline(put, '--', 'Color', [0.4, 0.4, 0.4]);
-xlabel('$n_{T}$', 'Interpreter', 'latex'); 
+xlabel('$n_{T}$', 'Interpreter', 'latex');
 ylabel('$P_0$', 'Interpreter', 'latex');
 %title('Convergencia del Estimador de Monte Carlo');
 axis square;
@@ -239,17 +222,17 @@ legend({'$P_0^{n_{T}}$', '$P_0^{N_{T}}$'}, ...
 %% Mostrar Resultados
 
 fprintf('==============================================================\n');
-fprintf('    Valoracion de opciones europeas en el Modelo de Heston    \n');
-fprintf('         Metodo en EDEs: Euler-Maruyama + Monte Carlo         \n');
+fprintf(' Valoracion de opciones europeas en el Modelo de Heston \n');
+fprintf(' Metodo en EDEs: Euler-Maruyama + Monte Carlo \n');
 fprintf('==============================================================\n');
 fprintf('Precio Call: %.6f. (IC 95%%: [%.6f, %.6f])\n', call, IC_call(1), IC_call(2));
 fprintf('Precio Put: %.6f. (IC 95%%: [%.6f, %.6f])\n', put, IC_put(1), IC_put(2));
 %{
 fprintf('Precio Call (empirico): media = %.6f, mediana = %.6f. (IC emp 95%%: [%.6f, %.6f])\n', ...
-        mean(call_rep), call_mediana, IC_emp_call(1), IC_emp_call(2));
+        mean(call_bloques), call_mediana, IC_emp_call(1), IC_emp_call(2));
 fprintf('Precio Put  (empirico): media = %.6f, mediana = %.6f. (IC emp 95%%: [%.6f, %.6f])\n', ...
-        mean(put_rep), put_mediana, IC_emp_put(1), IC_emp_put(2));
+        mean(put_bloques), put_mediana, IC_emp_put(1), IC_emp_put(2));
 %}
 fprintf('Verificacion, Paridad Put-Call: %d.\n', round(abs(paridad_put_call)));
 fprintf('Tiempo de Cómputo: %d.\n', tiempo);
-fprintf('==============================================================\n')
+fprintf('==============================================================\n');
