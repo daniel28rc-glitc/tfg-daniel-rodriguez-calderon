@@ -1,6 +1,6 @@
 # TFG - Daniel Rodríguez Calderón
 
-Este repositorio contiene los scripts implementados en MATLAB para el Trabajo de Fin de Grado de Daniel Rodríguez Calderón. Los códigos incluyen diversas simulaciones y cálculos enfocados en ecuaciones diferenciales estocásticas, en derivadas parciales o en soluciones semi-analíticas.
+Este repositorio contiene los scripts implementados en MATLAB para el Trabajo de Fin de Grado de Daniel Rodríguez Calderón. Los códigos incluyen diversas simulaciones y cálculos enfocados en ecuaciones diferenciales estocásticas, derivadas parciales o soluciones semi-analíticas.
 
 ## Archivos del repositorio
 
