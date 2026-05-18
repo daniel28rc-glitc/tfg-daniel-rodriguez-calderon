@@ -27,6 +27,7 @@ theta_tilde = (kappa*theta - rho*sigma*(mu - r))/kappa_tilde;
 % Parametros de Monte Carlo
 N_tray      = 10000;
 N_plot      = 1000;
+% N_rep       = 1000;
 
 % Parametros de Discretizacion Temporal
 n       = 1000;
@@ -84,6 +85,47 @@ IC_call     = [call - error_call, call + error_call];
 destip_put = std(payoff_put);
 error_put  = 1.96*destip_put/sqrt(N_tray);
 IC_put     = [put - error_put, put + error_put];
+
+%% Intervalo de confianza empirico del estimador 
+
+%{
+call_rep = zeros(N_rep,1);
+put_rep  = zeros(N_rep,1);
+
+for k = 1:N_rep
+    payoff_call_k = zeros(N_tray,1);
+    payoff_put_k  = zeros(N_tray,1);
+    S_local   = zeros(n+1,1);
+    ups_local = zeros(n+1,1);
+
+    for n_tray_k = 1:N_tray
+        S_local(1)   = S0;
+        ups_local(1) = ups0;
+        dW1 = sqrt(Deltat)*randn(n,1);
+        dW2 = sqrt(Deltat)*randn(n,1);
+
+        for i = 1:n
+            ups_iplus = max(ups_local(i),0);
+            S_local(i+1) = S_local(i) + r*S_local(i)*Deltat ...
+                           + sqrt(ups_iplus)*S_local(i)*dW1(i);
+            ups_local(i+1) = ups_iplus + kappa_tilde*(theta_tilde - ups_iplus)*Deltat ...
+                             + sigma*rho*sqrt(ups_iplus)*dW1(i) ...
+                             + sigma*sqrt((1 - rho^2)*ups_iplus)*dW2(i);
+        end
+
+        payoff_call_k(n_tray_k) = max(S_local(end) - K, 0);
+        payoff_put_k(n_tray_k)  = max(K - S_local(end), 0);
+    end
+
+    call_rep(k) = descuento*mean(payoff_call_k);
+    put_rep(k)  = descuento*mean(payoff_put_k);
+end
+
+IC_emp_call = prctile(call_rep,[2.5 97.5]);
+IC_emp_put  = prctile(put_rep,[2.5 97.5]);
+call_mediana = median(call_rep);
+put_mediana  = median(put_rep);
+%}
 
 %% Registro de Trayectorias de Muestra y Estadísticas
 
@@ -202,6 +244,12 @@ fprintf('         Metodo en EDEs: Euler-Maruyama + Monte Carlo         \n');
 fprintf('==============================================================\n');
 fprintf('Precio Call: %.6f. (IC 95%%: [%.6f, %.6f])\n', call, IC_call(1), IC_call(2));
 fprintf('Precio Put: %.6f. (IC 95%%: [%.6f, %.6f])\n', put, IC_put(1), IC_put(2));
+%{
+fprintf('Precio Call (empirico): media = %.6f, mediana = %.6f. (IC emp 95%%: [%.6f, %.6f])\n', ...
+        mean(call_rep), call_mediana, IC_emp_call(1), IC_emp_call(2));
+fprintf('Precio Put  (empirico): media = %.6f, mediana = %.6f. (IC emp 95%%: [%.6f, %.6f])\n', ...
+        mean(put_rep), put_mediana, IC_emp_put(1), IC_emp_put(2));
+%}
 fprintf('Verificacion, Paridad Put-Call: %d.\n', round(abs(paridad_put_call)));
 fprintf('Tiempo de Cómputo: %d.\n', tiempo);
 fprintf('==============================================================\n')
