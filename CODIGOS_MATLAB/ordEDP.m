@@ -144,9 +144,9 @@ p2 = loglog(h_X_dense, err_sp(1)*(h_X_dense/h_X_err(1)).^1, ...
 p3 = loglog(h_X_dense, err_sp(1)*(h_X_dense/h_X_err(1)).^2, ...
     '--', 'Color', [0.1 0.1 0.1], 'LineWidth', 1.2);
 xlabel('$h_X$', 'Interpreter', 'latex');
-ylabel('$(e_{sp})_{L^2}$', 'Interpreter', 'latex');
+ylabel('$e_{esp}$', 'Interpreter', 'latex');
 %title('Convergencia Espacial ($h_X$)', 'Interpreter', 'latex');
-legend([p1, p2, p3], {'$(e_{sp})_{L^2}$', '$\mathcal{O}(h_X)$', '$\mathcal{O}(h_X^2)$'}, ...
+legend([p1, p2, p3], {'$e_{esp}$', '$\mathcal{O}(h_X)$', '$\mathcal{O}(h_X^2)$'}, ...
     'Interpreter', 'latex', 'FontSize', 10, 'Location', 'southwest');
 grid on; axis square; hold off;
 
@@ -158,9 +158,9 @@ p2 = loglog(h_ups_dense, err_sp(1)*(h_ups_dense/h_ups_err(1)).^1, ...
 p3 = loglog(h_ups_dense, err_sp(1)*(h_ups_dense/h_ups_err(1)).^2, ...
     '--', 'Color', [0.1 0.1 0.1], 'LineWidth', 1.2);
 xlabel('$h_\upsilon$', 'Interpreter', 'latex');
-ylabel('$(e_{sp})_{L^2}$', 'Interpreter', 'latex');
+ylabel('$e_{esp}$', 'Interpreter', 'latex');
 %title('Convergencia Espacial ($h_\upsilon$)', 'Interpreter', 'latex');
-legend([p1, p2, p3], {'$(e_{sp})_{L^2}$', '$\mathcal{O}(h_\upsilon)$', '$\mathcal{O}(h_\upsilon^2)$'}, ...
+legend([p1, p2, p3], {'$e_{esp}$', '$\mathcal{O}(h_\upsilon)$', '$\mathcal{O}(h_\upsilon^2)$'}, ...
     'Interpreter', 'latex', 'FontSize', 10, 'Location', 'southwest');
 grid on; axis square; hold off;
 
@@ -172,9 +172,9 @@ p2 = loglog(h_tau_dense, err_t(1)*(h_tau_dense/h_tau_list(1)).^1, ...
 p3 = loglog(h_tau_dense, err_t(1)*(h_tau_dense/h_tau_list(1)).^2, ...
     '--', 'Color', [0.1 0.1 0.1], 'LineWidth', 1.2);
 xlabel('$\Delta\tau$', 'Interpreter', 'latex');
-ylabel('$(e_t)_{L^2}$', 'Interpreter', 'latex');
+ylabel('$e_t$', 'Interpreter', 'latex');
 %title('Convergencia Temporal', 'Interpreter', 'latex');
-legend([p1, p2, p3], {'$(e_t)_{L^2}$', '$\mathcal{O}(\Delta\tau)$', '$\mathcal{O}(\Delta\tau^2)$'}, ...
+legend([p1, p2, p3], {'$e_t$', '$\mathcal{O}(\Delta\tau)$', '$\mathcal{O}(\Delta\tau^2)$'}, ...
     'Interpreter', 'latex', 'FontSize', 10, 'Location', 'southwest');
 grid on; axis square; hold off;
 
@@ -190,7 +190,7 @@ fprintf('================================================================\n');
 %fprintf('----------------------------------------------------------------\n');
 fprintf('ORDEN ESPACIAL:\n\n');
 fprintf('%-6s %-8s %-10s %-16s %-10s\n', ...
-    'N_X', 'N_ups', 'N_tau', '(e_sp)_L2', 'ord_sp.');
+    'N_X', 'N_ups', 'N_tau', 'e_esp', 'ord_sp.');
 fprintf('%s\n', repmat('-', 1, 55));
 for k = 1:n_err_sp
     if k > 1
@@ -205,7 +205,7 @@ fprintf('\nMedia del orden de convergencia espacial: %.3f.\n', mean(ord_sp(2:end
 fprintf('----------------------------------------------------------------\n');
 fprintf('ORDEN TEMPORAL:\n\n');
 fprintf('%-14s %-10s %-16s %-10s\n', ...
-    'h_tau', 'N_tau', '(e_t)_L2', 'ord_t.');
+    'h_tau', 'N_tau', 'e_t', 'ord_t.');
 fprintf('%s\n', repmat('-', 1, 55));
 for k = 1:n_err_t
     if k > 1
