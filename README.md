@@ -11,7 +11,7 @@ Este repositorio contiene los scripts implementados en MATLAB para el Trabajo de
 - **compLp.m**: Compara diferentes métodos de valoración en el Modelo de Heston mediante el cálculo de la norma $L^p(Q)$ utilizando el teorema de Feynman-Kac.
 - **ordEDE.m**: Script auxiliar que calcula los órdenes de convergencia del método de Euler-Maruyama junto con Monte Carlo.
 - **ordEDP.m**: Script auxiliar que evalúa los órdenes de convergencia del método en EDP mediante diferencias finitas.
-
+- **mallaEDP.m**: Dibuja de forma general, el esquema discreto de evalución del método en EDP.
 ## Requisitos de uso
 
 Para ejecutar correctamente los archivos de este repositorio, es necesario:
