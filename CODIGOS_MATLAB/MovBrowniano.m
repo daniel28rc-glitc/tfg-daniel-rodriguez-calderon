@@ -49,11 +49,15 @@ for k = 1:4
     hold off
 
     % Estilo y etiquetas 
-    box on;
-    xlabel('t', 'FontSize', 11);
-    ylabel('B_t', 'FontSize', 11);
+    box on; grid on;
+    xlabel('$t$', 'Interpreter', 'latex', 'FontSize', 11);
+    ylabel('$B_t$', 'Interpreter', 'latex', 'FontSize', 11);
     xlim([0, 1]);
-    texto = sprintf('%d trayectorias', trays(k), repmat('s', 1, trays(k)>1));
+    if trays(k) == 1
+        texto = sprintf('%d trayectoria', trays(k));
+    else
+        texto = sprintf('%d trayectorias', trays(k));
+    end
     title(texto, ...
              'Units', 'normalized', 'Position', [0.5, 0.1, 0], ...
              'BackgroundColor', 'w', 'EdgeColor', 'k', ...
