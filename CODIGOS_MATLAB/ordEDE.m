@@ -215,8 +215,8 @@ hp1 = loglog(ax1, dt_vec_f, error_fuerte, '-', ...
     'Color', col_fuerte, 'LineWidth', 1.8, ...
     'MarkerSize', 7, 'MarkerFaceColor', col_fuerte);
 hp2 = loglog(ax1, dt_fit_f, ref_half, 'k-.', 'LineWidth', 1.2);
-set(ax1, 'XDir', 'reverse', 'XGrid', 'on', 'YGrid', 'on', ...
-    'GridAlpha', 0.35, 'TickLabelInterpreter', 'latex', 'FontSize', 10);
+%set(ax1, 'XDir', 'reverse', 'XGrid', 'on', 'YGrid', 'on', ...
+%    'GridAlpha', 0.35, 'TickLabelInterpreter', 'latex', 'FontSize', 10);
 xlabel(ax1, '$\Delta t$',   'Interpreter', 'latex', 'FontSize', 12);
 ylabel(ax1, '$e_s$', 'Interpreter', 'latex', 'FontSize', 12);
 legend(ax1, [hp1, hp2], ...
@@ -242,8 +242,8 @@ if ~isempty(primero_limpio)
     leg_handles_d(end+1) = hd2;
     leg_labels_d{end+1}  = '$\mathcal{O}(\Delta t^{1})$';
 end
-set(ax2, 'XDir', 'reverse', 'XGrid', 'on', 'YGrid', 'on', ...
-    'GridAlpha', 0.35, 'TickLabelInterpreter', 'latex', 'FontSize', 10);
+%set(ax2, 'XDir', 'reverse', 'XGrid', 'on', 'YGrid', 'on', ...
+%    'GridAlpha', 0.35, 'TickLabelInterpreter', 'latex', 'FontSize', 10);
 xlabel(ax2, '$\Delta t$',  'Interpreter', 'latex', 'FontSize', 12);
 ylabel(ax2, '$e_w$', 'Interpreter', 'latex', 'FontSize', 12);
 if ~isempty(leg_handles_d)
@@ -315,3 +315,4 @@ else
     fprintf('Orden global debil: no disponible\n');
 end
 fprintf('===============================================================================\n');
+
