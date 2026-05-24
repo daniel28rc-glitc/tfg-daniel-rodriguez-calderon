@@ -68,9 +68,9 @@ figure(1); sub1 = subplot(1,2,1); hold on;
 surf(ups_malla, S_malla, C); 
 colormap(sub1, autumn); shading faceted; 
 plot3(ups0, S0, call, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k'); 
-xlabel('$\upsilon_t$', 'Interpreter', 'latex');
-ylabel('$S_t$', 'Interpreter', 'latex');
-zlabel('$C_t$', 'Interpreter', 'latex');
+xlabel('$\upsilon$', 'Interpreter', 'latex');
+ylabel('$S$', 'Interpreter', 'latex');
+zlabel('$C$', 'Interpreter', 'latex');
 %title('Superficie de Precios Call');
 %colorbar
 view(-45, 30); grid on; hold off;
@@ -79,9 +79,9 @@ figure(1); sub2 = subplot(1,2,2); hold on;
 surf(ups_malla, S_malla, P); 
 colormap(sub2, summer); shading faceted; 
 plot3(ups0, S0, put, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k'); 
-xlabel('$\upsilon_t$', 'Interpreter', 'latex');
-ylabel('$S_t$', 'Interpreter', 'latex');
-zlabel('$P_t$', 'Interpreter', 'latex');
+xlabel('$\upsilon$', 'Interpreter', 'latex');
+ylabel('$S$', 'Interpreter', 'latex');
+zlabel('$P$', 'Interpreter', 'latex');
 %title('Superficie de Precios Put');
 %colorbar
 view(-135, 30); grid on; hold off;
