@@ -147,7 +147,7 @@ xlabel('$t$', 'Interpreter', 'latex'); ylabel('$S_t$', 'Interpreter', 'latex');
 %title('Trayectorias $S_t$', 'Interpreter', 'latex');
 axis square;
 legend([plot1, fill1, plot2, yline1], ...
-    {'Trays. $S_t$','$[\bar{S}_t-\hat{\sigma}_{S_t},\ \bar{S}_t+\hat{\sigma}_{S_t}]$', '$\bar{S}_t$', '$K$'}, ...
+    {'$S_t$','$[\bar{S}_t-\hat{\sigma}_{S_t},\ \bar{S}_t+\hat{\sigma}_{S_t}]$', '$\bar{S}_t$', '$K$'}, ...
     'Interpreter', 'latex', 'FontSize', 10);
 
 figure(2); subplot(1,2,1); hold on; grid on;
@@ -166,7 +166,7 @@ ylabel('$\upsilon_t$', 'Interpreter', 'latex');
 %title('Trayectorias $\\upsilon_t$', 'Interpreter', 'latex');
 axis square;
 legend([plot1, plot2, yline1, yline2], ...
-    {'Trays. $\upsilon_t$', '$\bar{\upsilon}_t$', '$\tilde{\theta}$', '$\upsilon_0$'}, ...
+    {'$\upsilon_t$', '$\bar{\upsilon}_t$', '$\tilde{\theta}$', '$\upsilon_0$'}, ...
     'Interpreter', 'latex', 'FontSize', 10);
 
 figure(1); subplot(1,2,2); hold on; grid on;
@@ -175,7 +175,7 @@ xline(K, '--', 'Color', [0.3, 0.3, 0.3]);
 xline(mean(S_T), '-', 'Color', [0.2, 0.2, 0.2]);
 xline(median(S_T), ':', 'Color', [0.5, 0.5, 0.5]); axis square;
 xlabel('$S_T$', 'Interpreter', 'latex');
-ylabel('$n_k$', 'Interpreter', 'latex');
+ylabel('$\# S_T$', 'Interpreter', 'latex');
 %title(sprintf('Distribucion $S_t$ - %d trayectorias', N_tray), ...
 %'Interpreter', 'latex'); axis square;
 legend({'$\# S_T$', '$K$', '$\bar{S_T}$', '$\tilde{S_T}$'}, ...
@@ -191,7 +191,7 @@ histogram(ups_T, 30, 'Normalization', 'count', 'FaceColor', [0.1 0.35 0.62], 'Ed
 %plot(x_cir, pdf_cir, 'k', 'LineWidth', 2);
 xline(theta_tilde, '--', 'Color', [0.3, 0.3, 0.3]); axis square;
 xlabel('$\upsilon_T$', 'Interpreter', 'latex');
-ylabel('$n_k$', 'Interpreter', 'latex');
+ylabel('$\# \upsilon_T$', 'Interpreter', 'latex');
 %title(sprintf('Distribucion $\\upsilon_t$ - %d trayectorias', N_tray), ...
 %'Interpreter', 'latex'); axis square;
 legend({'$\# \upsilon_T$', '$\tilde{\theta}$'}, ...
@@ -202,10 +202,10 @@ call_conv = descuento*cumsum(payoff_call)./(1:N_tray).';
 semilogx(1:N_tray, call_conv, 'Color', [0.9, 0.4, 0.4]);
 yline(call, '--', 'Color', [0.4, 0.4, 0.4]);
 xlabel('$n_{T}$', 'Interpreter', 'latex');
-ylabel('$C_0$', 'Interpreter', 'latex');
+ylabel('$\hat{C}_{n_{T}}$', 'Interpreter', 'latex');
 %title('Convergencia del Estimador de Monte Carlo');
 axis square;
-legend({'$C_0^{n_{T}}$', '$C_0^{N_{T}}$'}, ...
+legend({'$\hat{C}_{n_{T}}$', '$C_0$'}, ...
     'Interpreter', 'latex', 'FontSize', 10);
 
 figure(3); subplot(1,2,2); hold on; grid on;
@@ -213,10 +213,10 @@ put_conv = descuento*cumsum(payoff_put)./(1:N_tray).';
 semilogx(1:N_tray, put_conv, 'Color', [0.4, 0.8, 0.4]);
 yline(put, '--', 'Color', [0.4, 0.4, 0.4]);
 xlabel('$n_{T}$', 'Interpreter', 'latex');
-ylabel('$P_0$', 'Interpreter', 'latex');
+ylabel('$\hat{P}_{n_{T}}$', 'Interpreter', 'latex');
 %title('Convergencia del Estimador de Monte Carlo');
 axis square;
-legend({'$P_0^{n_{T}}$', '$P_0^{N_{T}}$'}, ...
+legend({'$\hat{C}_{n_{T}}}$', '$P_0$'}, ...
     'Interpreter', 'latex', 'FontSize', 10);
 
 %% Mostrar Resultados
