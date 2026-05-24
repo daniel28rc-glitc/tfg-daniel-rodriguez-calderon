@@ -262,8 +262,8 @@ p2 = plot(S_vis, EDE_malla_call(j_ups0,:).','--', 'Color', [0.9, 0.4, 0.4], 'Lin
 p3 = plot(S_vis, EDP_malla_call(j_ups0,:).',':', 'Color', [0.9, 0.4, 0.4], 'LineWidth', 1.8);
 x1 = xline(K,  'k--', 'LineWidth', 1.2, 'HandleVisibility', 'off');
 x2 = xline(S0, 'k:',  'LineWidth', 1.2, 'HandleVisibility', 'off');
-xlabel('$S_t$', 'Interpreter', 'latex');
-ylabel('$C_t$', 'Interpreter', 'latex');
+xlabel('$S$', 'Interpreter', 'latex');
+ylabel('$\textit{Call}$', 'Interpreter', 'latex');
 %title(sprintf('Perfil Call ($\\upsilon_0 = %.4f$)', ups0), 'Interpreter', 'latex');
 legend([p1, p2, p3, x1, x2], {'SA', 'EDE', 'EDP', '$K$', '$S_0$'}, 'Interpreter', 'latex', 'FontSize', 10);
 grid on; axis square; hold off;
@@ -274,8 +274,8 @@ p2 = plot(S_vis, EDE_malla_put(j_ups0,:).','--', 'Color', [0.4, 0.8, 0.4], 'Line
 p3 = plot(S_vis, EDP_malla_put(j_ups0,:).',':', 'Color', [0.4, 0.8, 0.4], 'LineWidth', 1.8);
 x1 = xline(K,  'k--', 'LineWidth', 1.2, 'HandleVisibility', 'off');
 x2 = xline(S0, 'k:',  'LineWidth', 1.2, 'HandleVisibility', 'off');
-xlabel('$S_t$', 'Interpreter', 'latex');
-ylabel('$P_t$', 'Interpreter', 'latex');
+xlabel('$S$', 'Interpreter', 'latex');
+ylabel('$\textit{Put}$', 'Interpreter', 'latex');
 %title(sprintf('Perfil Put ($\\upsilon_0 = %.4f$)', ups0), 'Interpreter', 'latex');
 legend([p1, p2, p3, x1, x2], {'SA', 'EDE', 'EDP', '$K$', '$S_0$'}, 'Interpreter', 'latex', 'FontSize', 10);
 grid on; axis square; hold off;
@@ -283,17 +283,17 @@ grid on; axis square; hold off;
 figure(2); hold on;
 p2 = scatter(S_nube, ups_nube, 6, 'k', 'filled', 'MarkerFaceAlpha', 0.3);
 p1 = plot(S0, ups0, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
-xlabel('$S_t$', 'Interpreter', 'latex');
-ylabel('$\upsilon_t$', 'Interpreter', 'latex');
+xlabel('$S$', 'Interpreter', 'latex');
+ylabel('$\upsilon$', 'Interpreter', 'latex');
 %title('Nube Simulada bajo Medida Neutra', 'Interpreter', 'latex');
-legend([p1, p2], {'$(S_0,\,\upsilon_0)$ ', 'Nube'}, 'Interpreter', 'latex', 'FontSize', 10);
+legend([p1, p2], {'$(S_0,\,\upsilon_0)$ ', 'Nube '}, 'Interpreter', 'latex', 'FontSize', 10);
 grid on; axis square; hold off;
 
 err_perfil_call = {err_EDE_call_vis(j_ups0,:).', ...
                    err_EDP_call_vis(j_ups0,:).', ...
                    abs(EDE_malla_call(j_ups0,:).' - EDP_malla_call(j_ups0,:).')};
 err_malla_call  = {err_EDE_call_vis, err_EDP_call_vis, err_EDE_EDP_call_vis};
-titulos_perfil  = {'$|EDE - SA|$', '$|EDP - SA|$', '$|EDE - EDP|$'};
+titulos_perfil  = {'EDE -- SA', 'EDP -- SA', 'EDE -- EDP'};
 titulos_mapa    = {'Mapa Error $|EDE - SA|$', 'Mapa Error $|EDP - SA|$', 'Mapa Error $|EDE - EDP|$'};
 colores_cols    = [colores(1,:); colores(2,:); colores(3,:)];
 
@@ -301,18 +301,18 @@ figure(3);
 for col = 1:3
     subplot(2, 3, col); hold on;
     plot(S_vis, err_perfil_call{col}, '-', 'Color', colores_cols(col,:), 'LineWidth', 2.0);
-    xlabel('$S_t$', 'Interpreter', 'latex');
+    xlabel('$S$', 'Interpreter', 'latex');
     %ylabel(titulos_perfil{col}, 'Interpreter', 'latex');
-    %title(etiquetas{col}, 'Interpreter', 'latex');
+    title(titulos_perfil{col}, 'Interpreter', 'latex');
     grid on; axis square; hold off; 
 
     subplot(2, 3, col + 3);
     clim_val = quantile(err_malla_call{col}(:), 0.97);
     imagesc(S_vis, ups_vis, err_malla_call{col}, [0, clim_val]);
     set(gca, 'YDir', 'normal'); colormap("gray"); colorbar;
-    xlabel('$S_t$', 'Interpreter', 'latex');
-    ylabel('$\upsilon_t$', 'Interpreter', 'latex');
-    %title(titulos_mapa{col}, 'Interpreter', 'latex');
+    xlabel('$S$', 'Interpreter', 'latex');
+    ylabel('$\upsilon$', 'Interpreter', 'latex');
+    title(titulos_perfil{col}, 'Interpreter', 'latex');
     hold on; axis square;
     xline(S0,   'w--', 'LineWidth', 1.5, 'HandleVisibility', 'off');
     yline(ups0, 'w--', 'LineWidth', 1.5, 'HandleVisibility', 'off');
@@ -325,13 +325,12 @@ estilos = {'-', '-', '-'};
 figure(4);
 for col = 1:3
     subplot(1, 3, col); hold on;
-    plot(p_range, Lp_curva_call(col,:), estilos{col}, ...
-         'Color', colores_cols(col,:), 'LineWidth', 2, 'MarkerSize', 5, ...
-         'DisplayName', 'Call');
-    plot(p_range, Lp_curva_put(col,:), estilos{col}, ...
-         'Color', colores_cols(col,:), 'LineWidth', 2, 'MarkerSize', 5, ...
-         'LineStyle', '--', 'DisplayName', 'Put');
-    xlabel('$p$', 'Interpreter', 'latex');
+    plot(p_range, Lp_curva_call(col,:), estilos{col}, 'Color',...
+        colores_cols(col,:), 'LineWidth', 2, 'MarkerSize', 5,...
+        'DisplayName', '$\textit{Call}$');
+    plot(p_range, Lp_curva_put(col,:), estilos{col}, 'Color',...
+        colores_cols(col,:), 'LineWidth', 2, 'MarkerSize', 5,...
+        'LineStyle', '--', 'DisplayName', '$\textit{Put}$');
     %if col == 1
     %    ylabel('$\|EDE - SA\|_{L^p(Q)}$', 'Interpreter', 'latex');
     %elseif col == 2
@@ -339,9 +338,9 @@ for col = 1:3
     %elseif col == 3
     %    ylabel('$\|EDE - EDP\|_{L^p(Q)}$', 'Interpreter', 'latex');
     %end
-    %title(etiquetas{col}, 'Interpreter', 'latex');
+    xlabel('$p$', 'Interpreter', 'latex');
+    title(titulos_perfil{col}, 'Interpreter', 'latex');
     legend('Interpreter', 'latex', 'FontSize', 10);
-    %xticks(1:0.5:4); 
     grid on; axis square; hold off;
 end
 
