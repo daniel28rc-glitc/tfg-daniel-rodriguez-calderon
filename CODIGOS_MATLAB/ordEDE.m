@@ -53,7 +53,7 @@ Ld       = numel(n_vec_d);
 n_ref  = 2^12;
 dt_ref = T/n_ref;
 
-M_conv     = 2000000;
+M_conv     = 1000000;
 SNR_umbral = 2;
 
 rng(42);
@@ -199,7 +199,7 @@ end
 %dt_fit_f = exp(linspace(log(dt_vec_f(end))*0.75, log(dt_vec_f(1))*1.1, 200));
 %dt_fit_d = exp(linspace(log(dt_vec_d(end))*0.75, log(dt_vec_d(1))*1.1, 200));
 dt_fit_f = linspace(0.001, 0.125, 200);
-dt_fit_d = linspace(0.03, 0.125, 200);
+dt_fit_d = linspace(0.015, 0.125, 200);
 
 ref_half = error_fuerte(1) * (dt_fit_f / dt_vec_f(1)).^0.5;
 
@@ -315,4 +315,3 @@ else
     fprintf('Orden global debil: no disponible\n');
 end
 fprintf('===============================================================================\n');
-
