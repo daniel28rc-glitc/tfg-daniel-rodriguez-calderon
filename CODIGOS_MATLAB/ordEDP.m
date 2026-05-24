@@ -171,10 +171,10 @@ p2 = loglog(h_tau_dense, err_t(1)*(h_tau_dense/h_tau_list(1)).^1, ...
     'k--', 'LineWidth', 1.2);
 p3 = loglog(h_tau_dense, err_t(1)*(h_tau_dense/h_tau_list(1)).^2, ...
     '--', 'Color', [0.1 0.1 0.1], 'LineWidth', 1.2);
-xlabel('$\Delta\tau$', 'Interpreter', 'latex');
-ylabel('$e_t$', 'Interpreter', 'latex');
+xlabel('$h_{\tau}$', 'Interpreter', 'latex');
+ylabel('$e_{\tau}$', 'Interpreter', 'latex');
 %title('Convergencia Temporal', 'Interpreter', 'latex');
-legend([p1, p2, p3], {'$e_t$', '$\mathcal{O}(\Delta\tau)$', '$\mathcal{O}(\Delta\tau^2)$'}, ...
+legend([p1, p2, p3], {'$e_{\tau}$', '$\mathcal{O}(h_{\tau})$', '$\mathcal{O}(h_{\tau}^2)$'}, ...
     'Interpreter', 'latex', 'FontSize', 10, 'Location', 'southwest');
 grid on; axis square; hold off;
 
