@@ -4,7 +4,7 @@ Este repositorio contiene los scripts implementados en MATLAB para el Trabajo de
 
 ## Archivos del repositorio
 
-- **MovBrowniano.m**: Script enfocado en la simulación matemática y generación de múltiples trayectorias de movimientos brownianos, permitiendo visualizar distintas trayectorias.
+- **movbrown.m**: Script enfocado en la simulación matemática y generación de múltiples trayectorias de movimientos brownianos, permitiendo visualizar distintas trayectorias.
 - **EDE.m**: Implementa la valoración de opciones europeas en el Modelo de Heston utilizando el método de Euler-Maruyama combinado con simulaciones de Monte Carlo.
 - **EDP.m**: Desarrolla la valoración de opciones europeas en el Modelo de Heston mediante un método en Ecuaciones en Derivadas Parciales (EDP), utilizando Euler explícito con diferencias finitas.
 - **SA.m**: Realiza la valoración de opciones europeas en el Modelo de Heston utilizando un método semi-analítico basado en integración numérica.
