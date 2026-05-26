@@ -8,7 +8,7 @@ Este repositorio contiene los scripts implementados en MATLAB para el Trabajo de
 - **EDE.m**: Implementa la valoración de opciones europeas en el Modelo de Heston utilizando el método de Euler-Maruyama combinado con simulaciones de Monte Carlo.
 - **EDP.m**: Desarrolla la valoración de opciones europeas en el Modelo de Heston mediante un método en Ecuaciones en Derivadas Parciales (EDP), utilizando Euler explícito con diferencias finitas.
 - **SA.m**: Realiza la valoración de opciones europeas en el Modelo de Heston utilizando un método semi-analítico basado en integración numérica.
-- **compLp.m**: Compara diferentes métodos de valoración en el Modelo de Heston mediante el cálculo de la norma $L^p(Q)$ utilizando el teorema de Feynman-Kac.
+- **compLp.m**: Compara diferentes métodos de valoración en el Modelo de Heston mediante el cálculo de la norma $\mathcal{L}^p(Q)$ utilizando el teorema de Feynman-Kac.
 - **ordEDE.m**: Script auxiliar que calcula los órdenes de convergencia del método de Euler-Maruyama junto con Monte Carlo.
 - **ordEDP.m**: Script auxiliar que evalúa los órdenes de convergencia del método en EDP mediante diferencias finitas.
 - **mallaEDP.m**: Dibuja de forma generalizada el esquema discreto de evalución del método en EDP.
