@@ -287,9 +287,9 @@ p2 = scatter(S_nube, ups_nube, 6, 'k', 'filled', 'MarkerFaceAlpha', 0.3);
 p1 = plot(S0, ups0, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
 xlabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$\upsilon$', 'Interpreter', 'latex', 'FontSize', 18);
-%title('Nube Simulada bajo Medida Neutra', 'Interpreter', 'latex');
+%title('Nube Simulada bajo Medida Neutral', 'Interpreter', 'latex');
 set(gca, 'FontSize', 18); 
-legend([p1, p2], {'$(S_0,\,\upsilon_0)$ ', 'Nube '}, 'Interpreter', 'latex', 'FontSize', 18);
+legend([p1, p2], {'$(S_0,\,\upsilon_0)$ ', 'Nube de Puntos'}, 'Interpreter', 'latex', 'FontSize', 18);
 grid on; axis square; hold off;
 
 err_perfil_call = {err_EDE_call_vis(j_ups0,:).', ...
