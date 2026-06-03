@@ -40,17 +40,17 @@ put_ref = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'put', K, ...
 
 %% Parametros del Estudio de Ordenes
 
-expo_f   = 3:10;
+expo_f   = 3:10; 
 n_vec_f  = 2.^expo_f;
 dt_vec_f = T./n_vec_f;
 Lf       = numel(n_vec_f);
 
-expo_d   = 3:6;
+expo_d   = 3:10;
 n_vec_d  = 2.^expo_d;
 dt_vec_d = T./n_vec_d;
 Ld       = numel(n_vec_d);
 
-n_ref  = 2^12;
+n_ref  = 2^12; 
 dt_ref = T/n_ref;
 
 M_conv     = 1000000;
@@ -138,119 +138,70 @@ end
 snr_vec = error_debil./std_debil;
 
 ord_local_f = NaN(Lf, 1);
-
 for k = 2:Lf
     ord_local_f(k) = log(error_fuerte(k)/error_fuerte(k-1)) / ...
                      log(dt_vec_f(k)/dt_vec_f(k-1));
 end
 
 ord_local_d  = NaN(Ld, 1);
-flag_local_d = blanks(Ld);
-
-for k = 1:Ld
-    if snr_vec(k) >= SNR_umbral
-        flag_local_d(k) = ' ';
-    else
-        flag_local_d(k) = '*';
-    end
-end
-
 for k = 2:Ld
-    ambos_limpios = (snr_vec(k) >= SNR_umbral) && (snr_vec(k-1) >= SNR_umbral);
-    monotono      = (error_debil(k) < error_debil(k-1));
-    
-    if ambos_limpios && monotono
-        ord_local_d(k) = log(error_debil(k)/error_debil(k-1)) / ...
-                         log(dt_vec_d(k)/dt_vec_d(k-1));
-    elseif ambos_limpios && ~monotono
-        flag_local_d(k) = 'M';
-    end
+    ord_local_d(k) = log(error_debil(k)/error_debil(k-1)) / ...
+                     log(dt_vec_d(k)/dt_vec_d(k-1));
 end
 
-%% Ordenes Globales por Regresion Log-Log
+%% Ordenes Globales por Regresion Log-Log y Calculo de Error Estandar
 
-coef_f  = polyfit(log(dt_vec_f(:)), log(error_fuerte), 1);
+x_f = log(dt_vec_f(:));
+y_f = log(error_fuerte(:));
+coef_f  = polyfit(x_f, y_f, 1);
 gamma_s = coef_f(1);
+yfit_f = polyval(coef_f, x_f);
+%SSE_f  = sum((y_f - yfit_f).^2);
+%SST_f  = sum((x_f - mean(x_f)).^2);
+%std_s  = sqrt(SSE_f / (Lf - 2)) / sqrt(SST_f);
 
-idx_reg_d      = false(Ld, 1);
-primero_limpio = find(snr_vec >= SNR_umbral, 1);
-if ~isempty(primero_limpio)
-    idx_reg_d(primero_limpio) = true;
-end
-for k = 2:Ld
-    if snr_vec(k) >= SNR_umbral && error_debil(k) < error_debil(k-1)
-        idx_reg_d(k) = true;
-    end
-end
-
-n_reg_d = sum(idx_reg_d);
-if n_reg_d >= 2
-    coef_w     = polyfit(log(dt_vec_d(idx_reg_d)'), log(error_debil(idx_reg_d)), 1);
-    gamma_w    = coef_w(1);
-    gamma_w_ok = true;
-else
-    coef_w     = [NaN NaN];
-    gamma_w    = NaN;
-    gamma_w_ok = false;
-end
+x_d = log(dt_vec_d(:));
+y_d = log(error_debil(:));
+coef_w  = polyfit(x_d, y_d, 1);
+gamma_w = coef_w(1);
+yfit_d = polyval(coef_w, x_d);
+%SSE_d  = sum((y_d - yfit_d).^2);
+%SST_d  = sum((x_d - mean(x_d)).^2);
+%std_w  = sqrt(SSE_d / (Ld - 2)) / sqrt(SST_d);
 
 %% Visualizacion de Figuras
 
-%dt_fit_f = exp(linspace(log(dt_vec_f(end))*0.75, log(dt_vec_f(1))*1.1, 200));
-%dt_fit_d = exp(linspace(log(dt_vec_d(end))*0.75, log(dt_vec_d(1))*1.1, 200));
-dt_fit_f = linspace(0.001, 0.125, 200);
-dt_fit_d = linspace(0.015, 0.125, 200);
-
-ref_half = error_fuerte(1) * (dt_fit_f / dt_vec_f(1)).^0.5;
-
-idx_d_ok = idx_reg_d & (error_debil > 0);
-
-col_fuerte = [0.1 0.1 0.1];
-col_debil  = [0.1 0.1 0.1];
-
 figure(1);
-ax1 = subplot(1, 2, 1);
-hold(ax1, 'on');
-hp1 = loglog(ax1, dt_vec_f, error_fuerte, '-', ...
-    'Color', col_fuerte, 'LineWidth', 1.8, ...
-    'MarkerSize', 7, 'MarkerFaceColor', col_fuerte);
-hp2 = loglog(ax1, dt_fit_f, ref_half, 'k-.', 'LineWidth', 1.2);
-%set(ax1, 'XDir', 'reverse', 'XGrid', 'on', 'YGrid', 'on', ...
-%    'GridAlpha', 0.35, 'TickLabelInterpreter', 'latex', 'FontSize', 10);
-xlabel(ax1, '$\Delta t$',   'Interpreter', 'latex', 'FontSize', 12);
-ylabel(ax1, '$e_s$', 'Interpreter', 'latex', 'FontSize', 12);
-legend(ax1, [hp1, hp2], ...
-    {'$e_s$', '$\mathcal{O}(\Delta t^{0.5})$'}, ...
-    'Interpreter', 'latex', 'FontSize', 10, 'Location', 'northwest');
-axis square; axis tight; hold(ax1, 'off');
 
-ax2 = subplot(1, 2, 2);
-hold(ax2, 'on');
-leg_handles_d = [];
-leg_labels_d  = {};
-if any(idx_d_ok)
-    hd1 = loglog(ax2, dt_vec_d(idx_d_ok), error_debil(idx_d_ok), '-', ...
-        'Color', col_debil, 'LineWidth', 1.8, ...
-        'MarkerSize', 8, 'MarkerFaceColor', col_debil);
-    leg_handles_d(end+1) = hd1;
-    leg_labels_d{end+1}  = '$e_w$';
-end
-if ~isempty(primero_limpio)
-    ref_one = error_debil(primero_limpio) * ...
-              (dt_fit_d / dt_vec_d(primero_limpio)).^1.0;
-    hd2 = loglog(ax2, dt_fit_d, ref_one, 'k:', 'LineWidth', 1.2);
-    leg_handles_d(end+1) = hd2;
-    leg_labels_d{end+1}  = '$\mathcal{O}(\Delta t^{1})$';
-end
-%set(ax2, 'XDir', 'reverse', 'XGrid', 'on', 'YGrid', 'on', ...
-%    'GridAlpha', 0.35, 'TickLabelInterpreter', 'latex', 'FontSize', 10);
-xlabel(ax2, '$\Delta t$',  'Interpreter', 'latex', 'FontSize', 12);
-ylabel(ax2, '$e_w$', 'Interpreter', 'latex', 'FontSize', 12);
-if ~isempty(leg_handles_d)
-    legend(ax2, leg_handles_d, leg_labels_d, ...
-        'Interpreter', 'latex', 'FontSize', 10, 'Location', 'northwest');
-end
-axis square; axis tight; hold(ax2, 'off');
+subplot(1, 2, 1); hold on; grid on;
+log_dt_f = log(dt_vec_f(:));
+log_es   = log(error_fuerte(:));
+plot(log_dt_f, log_es, 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 5, 'LineWidth', 1.5);
+plot(log_dt_f, yfit_f, ':', 'Color', [0.1 0.1 0.1], 'LineWidth', 2);
+xlabel('$\log (\Delta t)$', 'Interpreter', 'latex', 'FontSize', 18);
+ylabel('$\log (e_{s})$', 'Interpreter', 'latex', 'FontSize', 18);
+set(gca, 'FontSize', 18);
+legend({'$\log (e_{s})$', '$\mathcal{O}(\Delta t^{0.5})$'},'Interpreter', 'latex', 'FontSize', 18)
+%txt_f = sprintf('Slope = %.4f, Std: %.4f', gamma_s, std_s);
+%text(ax1, 0.05, 0.95, txt_f, 'Units', 'normalized', ...
+%    'VerticalAlignment', 'top', 'FontSize', 10, 'FontWeight', 'normal');
+%title(ax1, 'Orden conv. fuerte', 'FontSize', 12, 'FontWeight', 'bold');
+axis square; axis tight; hold off;
+
+subplot(1, 2, 2); hold on; grid on;
+log_dt_d = log(dt_vec_d(:));
+log_ew   = log(error_debil(:));
+plot(log_dt_d, log_ew, 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 5, 'LineWidth', 1.5);
+plot(log_dt_d, yfit_d, ':', 'Color', [0.1 0.1 0.1], 'LineWidth', 2);
+xlabel('$\log (\Delta t)$', 'Interpreter', 'latex', 'FontSize', 18);
+ylabel('$\log (e_{w})$', 'Interpreter', 'latex', 'FontSize', 18);
+set(gca, 'FontSize', 18);
+legend({'$\log (e_{w})$', '$\mathcal{O}(\Delta t^{1})$'},'Interpreter', 'latex', 'FontSize', 18)
+%txt_d = sprintf('Slope = %.4f, Std: %.4f', gamma_w, std_w);
+%text(ax2, 0.05, 0.95, txt_d, 'Units', 'normalized', ...
+%    'VerticalAlignment', 'top', 'FontSize', 10, 'FontWeight', 'normal');
+% title(ax2, 'Orden conv. débil', 'FontSize', 12, 'FontWeight', 'bold');
+axis square; axis tight; hold off;
 
 %% Mostrar Resultados
 
@@ -258,17 +209,11 @@ fprintf('=======================================================================
 fprintf('        Valoracion de opciones europeas en el Modelo de Heston                   \n');
 fprintf('        Ordenes de Convergencia: Euler-Maruyama + Monte Carlo                    \n');
 fprintf('===============================================================================\n');
-%fprintf('Precio de referencia semi-analitico (Call):  %.6f\n', call_ref);
-%fprintf('Precio de referencia semi-analitico (Put):   %.6f\n', put_ref);
-%fprintf('Trayectorias por nivel: %d\n', M_conv);
-
-sep = repmat('-', 1, 79);
-sep1 = repmat('-', 1, 70);
-%fprintf('%s\n', sep);
+sep  = repmat('-', 1, 79);
+sep1 = repmat('-', 1, 79);
 fprintf('%-6s %-10s %-12s %-9s %-12s %-9s %-8s\n', ...
     'n_k', 'dt_k', 'e_s', 'ord_s', 'e_w', 'ord_w', 'SNR');
 fprintf('%s\n', sep1);
-
 for k = 1:Lf
     ef_str = sprintf('%.3e', error_fuerte(k));
     if isnan(ord_local_f(k))
@@ -276,20 +221,10 @@ for k = 1:Lf
     else
         of_str = sprintf('%.4f', ord_local_f(k));
     end
-
     if k <= Ld
         ed_str = sprintf('%.3e', error_debil(k));
-        fl     = flag_local_d(k);
-        if isnan(ord_local_d(k))
-            if k == 1
-                od_str = '  -  ';
-            elseif fl == '*'
-                od_str = ' (*) ';
-            elseif fl == 'M'
-                od_str = ' (**) ';
-            else
-                od_str = '  -  ';
-            end
+        if k == 1
+            od_str = '  -  ';
         else
             od_str = sprintf('%.4f', ord_local_d(k));
         end
@@ -299,19 +234,10 @@ for k = 1:Lf
         od_str  = '    -    ';
         snr_str = '   -  ';
     end
-
     fprintf('%-6d %-10.6f %-12s %-9s %-12s %-9s %-8s\n', ...
         n_vec_f(k), dt_vec_f(k), ef_str, of_str, ed_str, od_str, snr_str);
 end
-
-fprintf('%s\n', sep1);
-fprintf(' (*) SNR < %g en algun nivel del par (orden debil local no fiable)\n', SNR_umbral);
-fprintf(' (**) e_debil no decrece al refinar (el ruido MC domina sobre el sesgo)\n');
-fprintf('%s\n', sep);
-fprintf('Media del orden de convergencia fuerte: ord_s = %.4f\n', gamma_s);
-if gamma_w_ok
-    fprintf('Media del orden de convergencia debil:  ord_w = %.4f\n', gamma_w);
-else
-    fprintf('Orden global debil: no disponible\n');
-end
+fprintf('\n%s\n', sep1);
+fprintf('Media del orden de convergencia fuerte: ord_s = %.4f \n', gamma_s);
+fprintf('Media del orden de convergencia debil:  ord_w = %.4f \n', gamma_w);
 fprintf('===============================================================================\n');
