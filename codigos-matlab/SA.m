@@ -31,14 +31,14 @@ fecha_venc  = datemnth(fecha_valo, round(T*12));
 
 %% Precios de Call y Put
 
-call = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'call', K, ...
+precio_call = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'call', K, ...
                     ups0, theta_tilde, kappa_tilde, sigma, rho, ...
                     'DividendYield', divd);
-put = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'put', K, ...
+precio_put = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'put', K, ...
                     ups0, theta_tilde, kappa_tilde, sigma, rho, ...
                     'DividendYield', divd);
 
-paridad_put_call = call - put - S0 + K*exp(-r*T);
+paridad_put_call = precio_call - precio_put - S0 + K*exp(-r*T);
 
 tiempo = toc;
 
@@ -46,28 +46,28 @@ tiempo = toc;
 
 b = 240; c = 0.01; d = 1;
 
-n_S = 60; 
-n_ups = 50;
+N_S = 60; 
+N_ups = 50;
 
-Ss    = linspace(1, b*exp(-r*T), n_S);
-upss  = linspace(c, d, n_ups);
+S_vec    = linspace(1, b*exp(-r*T), N_S);
+ups_vec  = linspace(c, d, N_ups);
 
-for j = 1:n_ups
-    C(:,j) = optByHestonNI(r, Ss, fecha_valo, fecha_venc, 'call', K, ...
-                    upss(j), theta_tilde, kappa_tilde, sigma, rho, ...
+for j = 1:N_ups
+    V_call(:,j) = optByHestonNI(r, S_vec, fecha_valo, fecha_venc, 'call', K, ...
+                    ups_vec(j), theta_tilde, kappa_tilde, sigma, rho, ...
                     'DividendYield', divd, 'ExpandOutput', true);
 
-    P(:,j) = optByHestonNI(r, Ss, fecha_valo, fecha_venc, 'put', K, ...
-                    upss(j), theta_tilde, kappa_tilde, sigma, rho, ...
+    V_put(:,j) = optByHestonNI(r, S_vec, fecha_valo, fecha_venc, 'put', K, ...
+                    ups_vec(j), theta_tilde, kappa_tilde, sigma, rho, ...
                     'DividendYield', divd, 'ExpandOutput', true);
 end
 
-[ups_malla, S_malla] = meshgrid(upss, Ss);
+[ups_mat, S_mat] = meshgrid(ups_vec, S_vec);
 
 figure(1); sub1 = subplot(1,2,1); hold on;
-surf(ups_malla, S_malla, C); 
+surf(ups_mat, S_mat, V_call); 
 colormap(sub1, autumn); shading faceted; 
-plot3(ups0, S0, call, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k'); 
+plot3(ups0, S0, precio_call, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k'); 
 xlabel('$\upsilon$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
 zlabel('$C$', 'Interpreter', 'latex', 'FontSize', 18);
@@ -77,9 +77,9 @@ set(gca, 'FontSize', 18);
 view(-45, 30); grid on; hold off;
 
 figure(1); sub2 = subplot(1,2,2); hold on;
-surf(ups_malla, S_malla, P); 
+surf(ups_mat, S_mat, V_put); 
 colormap(sub2, summer); shading faceted; 
-plot3(ups0, S0, put, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k'); 
+plot3(ups0, S0, precio_put, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k'); 
 xlabel('$\upsilon$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
 zlabel('$P$', 'Interpreter', 'latex', 'FontSize', 18);
@@ -94,8 +94,8 @@ fprintf('==============================================================\n');
 fprintf('    Valoracion de opciones europeas en el Modelo de Heston    \n');
 fprintf('   Metodo en EDEs: Semi--Analítico con Integración Numérica   \n');
 fprintf('==============================================================\n');
-fprintf('Precio Call: %.6f.\n', call);
-fprintf('Precio Put: %.6f.\n', put);
+fprintf('Precio Call: %.6f.\n', precio_call);
+fprintf('Precio Put: %.6f.\n', precio_put);
 fprintf('Verificacion, Paridad Put-Call: %d.\n', paridad_put_call);
 fprintf('Tiempo de Cómputo: %d.\n', tiempo);
 fprintf('==============================================================\n');

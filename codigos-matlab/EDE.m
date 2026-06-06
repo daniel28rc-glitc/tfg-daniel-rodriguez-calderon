@@ -34,31 +34,31 @@ B_bloques = 20;
 m = N_tray / B_bloques;
 
 % Parametros de Discretizacion Temporal
-n = 1000;
-Deltat = T / n;
-t = linspace(0, T, (n + 1));
+N_t = 1000;
+dt = T / N_t;
+t = linspace(0, T, (N_t + 1));
 
 %% Simulacion de Trayectorias
 
 payoff_call = zeros(N_tray, 1);
 payoff_put = zeros(N_tray, 1);
-S = zeros((n + 1), 1);
-ups = zeros((n + 1), 1);
+S = zeros((N_t + 1), 1);
+ups = zeros((N_t + 1), 1);
 
-S_plot = zeros((n + 1), N_plot);
-ups_plot = zeros((n + 1), N_plot);
+S_plot = zeros((N_t + 1), N_plot);
+ups_plot = zeros((N_t + 1), N_plot);
 
 for n_tray = 1:N_tray
     S(1) = S0;
     ups(1) = ups0;
-    dW1 = sqrt(Deltat)*randn(n, 1);
-    dW2 = sqrt(Deltat)*randn(n, 1);
+    dW1 = sqrt(dt)*randn(N_t, 1);
+    dW2 = sqrt(dt)*randn(N_t, 1);
 
-    for i = 1:n
+    for i = 1:N_t
         ups_iplus = max(ups(i), 0);
 
-        S(i+1) = S(i) + r*S(i)*Deltat + sqrt(ups_iplus)*S(i)*dW1(i);
-        ups(i+1) = ups_iplus + kappa_tilde*(theta_tilde - ups_iplus)*Deltat ...
+        S(i+1) = S(i) + r*S(i)*dt + sqrt(ups_iplus)*S(i)*dW1(i);
+        ups(i+1) = ups_iplus + kappa_tilde*(theta_tilde - ups_iplus)*dt ...
             + sigma*rho*sqrt(ups_iplus)*dW1(i) ...
             + sigma*sqrt((1 - rho^2)*ups_iplus)*dW2(i);
     end
@@ -73,10 +73,10 @@ for n_tray = 1:N_tray
 end
 
 descuento = exp(-r*T);
-call = descuento*mean(payoff_call);
-put = descuento*mean(payoff_put);
+precio_call = descuento*mean(payoff_call);
+precio_put = descuento*mean(payoff_put);
 
-paridad_put_call = call - put - S0 + K*exp(-r*T);
+paridad_put_call = precio_call - precio_put - S0 + K*exp(-r*T);
 
 tiempo = toc;
 
@@ -84,31 +84,31 @@ tiempo = toc;
 
 destip_call = std(payoff_call);
 error_call = 1.96*destip_call/sqrt(N_tray);
-IC_call = [call - error_call, call + error_call];
+IC_call = [precio_call - error_call, precio_call + error_call];
 
 destip_put = std(payoff_put);
 error_put = 1.96*destip_put/sqrt(N_tray);
-IC_put = [put - error_put, put + error_put];
+IC_put = [precio_put - error_put, precio_put + error_put];
 
 %% Intervalo de confianza empirico del estimador (por bloques, sin remuestreo)
 
 precio_call_tray = descuento*payoff_call;
 precio_put_tray  = descuento*payoff_put;
 
-call_bloques = zeros(B_bloques,1);
-put_bloques  = zeros(B_bloques,1);
+precio_call_bloques = zeros(B_bloques,1);
+precio_put_bloques  = zeros(B_bloques,1);
 
 for b = 1:B_bloques
     idx_ini = (b-1)*m + 1;
     idx_fin = b*m;
-    call_bloques(b) = mean(precio_call_tray(idx_ini:idx_fin));
-    put_bloques(b)  = mean(precio_put_tray(idx_ini:idx_fin));
+    precio_call_bloques(b) = mean(precio_call_tray(idx_ini:idx_fin));
+    precio_put_bloques(b)  = mean(precio_put_tray(idx_ini:idx_fin));
 end
 
-IC_emp_call = prctile(call_bloques,[2.5 97.5]);
-IC_emp_put  = prctile(put_bloques,[2.5 97.5]);
-call_mediana = median(call_bloques);
-put_mediana  = median(put_bloques);
+IC_emp_call = prctile(precio_call_bloques,[2.5 97.5]);
+IC_emp_put  = prctile(precio_put_bloques,[2.5 97.5]);
+precio_call_mediana = median(precio_call_bloques);
+precio_put_mediana  = median(precio_put_bloques);
 
 %% Registro de Trayectorias de Muestra y Estadísticas
 
@@ -203,7 +203,7 @@ legend({'$\# \upsilon_T$', '$\tilde{\theta}$'}, ...
 figure(3); subplot(1,2,1); hold on; grid on;
 call_conv = descuento*cumsum(payoff_call)./(1:N_tray).';
 semilogx(1:N_tray, call_conv, 'Color', [0.9, 0.4, 0.4]);
-yline(call, '--', 'Color', [0.4, 0.4, 0.4]);
+yline(precio_call, '--', 'Color', [0.4, 0.4, 0.4]);
 xlabel('$n_{T}$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$\hat{C}_{n_{T}}$', 'Interpreter', 'latex', 'FontSize', 18);
 %title('Convergencia del Estimador de Monte Carlo');
@@ -214,7 +214,7 @@ legend({'$\hat{C}_{n_{T}}$', '$C_0$'}, ...
 figure(3); subplot(1,2,2); hold on; grid on;
 put_conv = descuento*cumsum(payoff_put)./(1:N_tray).';
 semilogx(1:N_tray, put_conv, 'Color', [0.4, 0.8, 0.4]);
-yline(put, '--', 'Color', [0.4, 0.4, 0.4]);
+yline(precio_put, '--', 'Color', [0.4, 0.4, 0.4]);
 xlabel('$n_{T}$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$\hat{P}_{n_{T}}$', 'Interpreter', 'latex', 'FontSize', 18);
 %title('Convergencia del Estimador de Monte Carlo');
@@ -228,13 +228,13 @@ fprintf('==============================================================\n');
 fprintf(' Valoracion de opciones europeas en el Modelo de Heston \n');
 fprintf(' Metodo en EDEs: Euler-Maruyama + Monte Carlo \n');
 fprintf('==============================================================\n');
-fprintf('Precio Call: %.6f. (IC 95%%: [%.6f, %.6f])\n', call, IC_call(1), IC_call(2));
-fprintf('Precio Put: %.6f. (IC 95%%: [%.6f, %.6f])\n', put, IC_put(1), IC_put(2));
+fprintf('Precio Call: %.6f. (IC 95%%: [%.6f, %.6f])\n', precio_call, IC_call(1), IC_call(2));
+fprintf('Precio Put: %.6f. (IC 95%%: [%.6f, %.6f])\n', precio_put, IC_put(1), IC_put(2));
 %{
 fprintf('Precio Call (empirico): media = %.6f, mediana = %.6f. (IC emp 95%%: [%.6f, %.6f])\n', ...
-        mean(call_bloques), call_mediana, IC_emp_call(1), IC_emp_call(2));
+        mean(precio_call_bloques), precio_call_mediana, IC_emp_call(1), IC_emp_call(2));
 fprintf('Precio Put  (empirico): media = %.6f, mediana = %.6f. (IC emp 95%%: [%.6f, %.6f])\n', ...
-        mean(put_bloques), put_mediana, IC_emp_put(1), IC_emp_put(2));
+        mean(precio_put_bloques), precio_put_mediana, IC_emp_put(1), IC_emp_put(2));
 %}
 fprintf('Verificacion, Paridad Put-Call: %d.\n', round(abs(paridad_put_call)));
 fprintf('Tiempo de Cómputo: %d.\n', tiempo);

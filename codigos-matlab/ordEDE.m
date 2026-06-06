@@ -30,30 +30,30 @@ fecha_venc = datemnth(fecha_valo, round(T*12));
 
 %% Precio de Referencia Semi-Analitico
 
-call_ref = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'call', K, ...
+precio_call_ref = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'call', K, ...
     ups0, theta_tilde, kappa_tilde, sigma, rho, ...
     'DividendYield', 0);
 
-put_ref = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'put', K, ...
+precio_put_ref = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'put', K, ...
     ups0, theta_tilde, kappa_tilde, sigma, rho, ...
     'DividendYield', 0);
 
 %% Parametros del Estudio de Ordenes
 
 expo_f   = 3:10; 
-n_vec_f  = 2.^expo_f;
-dt_vec_f = T./n_vec_f;
-Lf       = numel(n_vec_f);
+N_t_vec_f = 2.^expo_f;
+dt_vec_f = T./N_t_vec_f;
+Lf       = numel(N_t_vec_f);
 
 expo_d   = 3:10;
-n_vec_d  = 2.^expo_d;
-dt_vec_d = T./n_vec_d;
-Ld       = numel(n_vec_d);
+N_t_vec_d = 2.^expo_d;
+dt_vec_d = T./N_t_vec_d;
+Ld       = numel(N_t_vec_d);
 
-n_ref  = 2^12; 
-dt_ref = T/n_ref;
+N_t_ref = 2^12; 
+dt_ref  = T/N_t_ref;
 
-M_conv     = 1000000;
+N_tray     = 1000000;
 SNR_umbral = 2;
 
 rng(42);
@@ -67,12 +67,12 @@ std_debil    = zeros(Ld, 1);
 descuento = exp(-r*T);
 
 blk = 50000;
-nb  = M_conv/blk;
+nb  = N_tray/blk;
 
 for k = 1:Lf
-    n_k        = n_vec_f(k);
+    N_t_k      = N_t_vec_f(k);
     dt_k       = dt_vec_f(k);
-    ratio      = n_ref/n_k;
+    ratio      = N_t_ref/N_t_k;
     calc_debil = (k <= Ld);
 
     acc_fuerte = 0;
@@ -82,13 +82,13 @@ for k = 1:Lf
     end
 
     for b = 1:nb
-        dW1_fino = sqrt(dt_ref)*randn(n_ref, blk);
-        dW2_fino = sqrt(dt_ref)*randn(n_ref, blk);
+        dW1_fino = sqrt(dt_ref)*randn(N_t_ref, blk);
+        dW2_fino = sqrt(dt_ref)*randn(N_t_ref, blk);
 
         S_f   = S0*ones(1, blk);
         ups_f = ups0*ones(1, blk);
 
-        for i = 1:n_ref
+        for i = 1:N_t_ref
             ups_p = max(ups_f, 0);
             S_f   = S_f   + r*S_f.*dt_ref   + sqrt(ups_p).*S_f.*dW1_fino(i,:);
             ups_f = ups_p + kappa_tilde*(theta_tilde - ups_p)*dt_ref ...
@@ -98,13 +98,13 @@ for k = 1:Lf
 
         S_T_fino = S_f;
 
-        dW1_gros = squeeze(sum(reshape(dW1_fino, ratio, n_k, blk), 1));
-        dW2_gros = squeeze(sum(reshape(dW2_fino, ratio, n_k, blk), 1));
+        dW1_gros = squeeze(sum(reshape(dW1_fino, ratio, N_t_k, blk), 1));
+        dW2_gros = squeeze(sum(reshape(dW2_fino, ratio, N_t_k, blk), 1));
 
         S_g   = S0*ones(1, blk);
         ups_g = ups0*ones(1, blk);
 
-        for i = 1:n_k
+        for i = 1:N_t_k
             ups_p = max(ups_g, 0);
             S_g   = S_g   + r*S_g.*dt_k   + sqrt(ups_p).*S_g.*dW1_gros(i,:);
             ups_g = ups_p + kappa_tilde*(theta_tilde - ups_p)*dt_k ...
@@ -123,13 +123,13 @@ for k = 1:Lf
         end
     end
 
-    error_fuerte(k) = acc_fuerte/M_conv;
+    error_fuerte(k) = acc_fuerte/N_tray;
 
     if calc_debil
-        mu_d           = acc_diff/M_conv;
-        var_d          = acc_diff2/M_conv - mu_d^2;
+        mu_d           = acc_diff/N_tray;
+        var_d          = acc_diff2/N_tray - mu_d^2;
         error_debil(k) = abs(mu_d);
-        std_debil(k)   = sqrt(max(var_d, 0)/M_conv);
+        std_debil(k)   = sqrt(max(var_d, 0)/N_tray);
     end
 end
 
@@ -212,7 +212,7 @@ fprintf('=======================================================================
 sep  = repmat('-', 1, 79);
 sep1 = repmat('-', 1, 79);
 fprintf('%-6s %-10s %-12s %-9s %-12s %-9s %-8s\n', ...
-    'n_k', 'dt_k', 'e_s', 'ord_s', 'e_w', 'ord_w', 'SNR');
+    'N_t_k', 'dt_k', 'e_s', 'ord_s', 'e_w', 'ord_w', 'SNR');
 fprintf('%s\n', sep1);
 for k = 1:Lf
     ef_str = sprintf('%.3e', error_fuerte(k));
@@ -235,7 +235,7 @@ for k = 1:Lf
         snr_str = '   -  ';
     end
     fprintf('%-6d %-10.6f %-12s %-9s %-12s %-9s %-8s\n', ...
-        n_vec_f(k), dt_vec_f(k), ef_str, of_str, ed_str, od_str, snr_str);
+        N_t_vec_f(k), dt_vec_f(k), ef_str, of_str, ed_str, od_str, snr_str);
 end
 fprintf('\n%s\n', sep1);
 fprintf('Media del orden de convergencia fuerte: ord_s = %.4f \n', gamma_s);

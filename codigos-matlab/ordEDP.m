@@ -32,9 +32,9 @@ d = 1;
 
 %% Malla de Referencia Comun
 
-X_ref = [linspace(50*exp(r*T), 75*exp(r*T), 20).'; ...
-         linspace(85*exp(r*T), 160*exp(r*T), 30).'];
-ups_ref = linspace(c, 0.50, 20);
+X_vec_ref = [linspace(50*exp(r*T), 75*exp(r*T), 20).'; ...
+             linspace(85*exp(r*T), 160*exp(r*T), 30).'];
+ups_vec_ref = linspace(c, 0.50, 20);
 
 %% ORDEN ESPACIAL: OPCION 1 
 
@@ -51,11 +51,11 @@ for lv = 1:n_sp1
     N_Xl   = N_X0_1*2^(lv - 1);
     N_upsl = N_ups0_1*2^(lv - 1);
 
-    [H_lv, Xs_lv, upss_lv, N_tau_lv1(lv)] = ...
+    [H_lv, X_vec_lv, ups_vec_lv, N_tau_lv1(lv)] = ...
         solver_fd_full(N_Xl, N_upsl, b, c, d, T, sigma, ...
                        kappa_tilde, theta_tilde, rho, K);
 
-    V_sp1{lv}     = interp_bil(H_lv, Xs_lv, upss_lv, X_ref, ups_ref, r, T);
+    V_sp1{lv}     = interp_precio_2D(H_lv, X_vec_lv, ups_vec_lv, X_vec_ref, ups_vec_ref, r, T);
     h_X_lv1(lv)   = b/N_Xl;
     h_ups_lv1(lv) = (d - c)/N_upsl;
 end
@@ -102,11 +102,11 @@ for lv = 1:n_sp2
     N_Xl   = N_X_list2(lv);
     N_upsl = N_ups_list2(lv);
 
-    [H_lv, Xs_lv, upss_lv, N_tau_lv2(lv)] = ...
+    [H_lv, X_vec_lv, ups_vec_lv, N_tau_lv2(lv)] = ...
         solver_fd_full(N_Xl, N_upsl, b, c, d, T, sigma, ...
                        kappa_tilde, theta_tilde, rho, K);
 
-    V_sp2{lv}     = interp_bil(H_lv, Xs_lv, upss_lv, X_ref, ups_ref, r, T);
+    V_sp2{lv}     = interp_precio_2D(H_lv, X_vec_lv, ups_vec_lv, X_vec_ref, ups_vec_ref, r, T);
     h_X_lv2(lv)   = b/N_Xl;
     h_ups_lv2(lv) = (d - c)/N_upsl;
 end
@@ -153,11 +153,11 @@ for lv = 1:n_sp3
     N_Xl   = N_X_list3(lv);
     N_upsl = N_ups_list3(lv);
 
-    [H_lv, Xs_lv, upss_lv, N_tau_lv3(lv)] = ...
+    [H_lv, X_vec_lv, ups_vec_lv, N_tau_lv3(lv)] = ...
         solver_fd_full(N_Xl, N_upsl, b, c, d, T, sigma, ...
                        kappa_tilde, theta_tilde, rho, K);
 
-    V_sp3{lv}     = interp_bil(H_lv, Xs_lv, upss_lv, X_ref, ups_ref, r, T);
+    V_sp3{lv}     = interp_precio_2D(H_lv, X_vec_lv, ups_vec_lv, X_vec_ref, ups_vec_ref, r, T);
     h_X_lv3(lv)   = b/N_Xl;
     h_ups_lv3(lv) = (d - c)/N_upsl;
 end
@@ -196,8 +196,8 @@ V_t        = cell(1, n_t);
 h_tau_list = zeros(1, n_t);
 N_tau_list = zeros(1, n_t);
 
-Xs_t   = linspace(0, b, N_X_t + 1).';
-upss_t = linspace(c, d, N_ups_t + 1);
+X_vec_t   = linspace(0, b, N_X_t + 1).';
+ups_vec_t = linspace(c, d, N_ups_t + 1);
 
 for lv = 1:n_t
     h_taul = h_tau_base/2^(lv - 1);
@@ -207,7 +207,7 @@ for lv = 1:n_t
     H_lv = solver_fd_htau(N_X_t, N_ups_t, b, c, d, T, h_taul, ...
                           sigma, kappa_tilde, theta_tilde, rho, K);
 
-    V_t{lv}        = interp_bil(H_lv, Xs_t, upss_t, X_ref, ups_ref, r, T);
+    V_t{lv}        = interp_precio_2D(H_lv, X_vec_t, ups_vec_t, X_vec_ref, ups_vec_ref, r, T);
     h_tau_list(lv) = h_taul;
     N_tau_list(lv) = N_taul;
 end
@@ -226,8 +226,8 @@ ord_t = log(err_t(1:end-1)./err_t(2:end)) ./ ...
 
 %% Precio de Verificacion
 
-[~, i_S] = min(abs(X_ref - S0));
-[~, i_v] = min(abs(ups_ref - ups0));
+[~, i_S] = min(abs(X_vec_ref - S0));
+[~, i_v] = min(abs(ups_vec_ref - ups0));
 precio_call = V_t{end}(i_S, i_v);
 precio_put  = precio_call - S0 + K*exp(-r*T);
 
@@ -374,7 +374,7 @@ fprintf('================================================================\n');
 
 %% Funciones Locales
 
-function [H, Xs, upss, N_tau, h_tau] = solver_fd_full(N_X, N_ups, b, c, d, T, ...
+function [H, X_vec, ups_vec, N_tau, h_tau] = solver_fd_full(N_X, N_ups, b, c, d, T, ...
                                                       sigma, kappa_tilde, theta_tilde, rho, K)
 h_X   = b/N_X;
 h_ups = (d - c)/N_ups;
@@ -382,12 +382,12 @@ h_tau_CFL = 1/(d*b^2/h_X^2 + sigma^2*d/h_ups^2);
 N_tau = ceil(T/(0.9*h_tau_CFL));
 h_tau = T/N_tau;
 
-Xs   = linspace(0, b, N_X + 1).';
-upss = linspace(c, d, N_ups + 1);
-H    = cond_ini(Xs, upss, K);
+X_vec   = linspace(0, b, N_X + 1).';
+ups_vec = linspace(c, d, N_ups + 1);
+H       = cond_ini(X_vec, ups_vec, K);
 
 for i_tau = 1:N_tau
-    H = euler_explicito(H, Xs, upss, h_tau, h_X, h_ups, ...
+    H = paso_euler_edp(H, X_vec, ups_vec, h_tau, h_X, h_ups, ...
                         sigma, kappa_tilde, theta_tilde, rho);
 end
 end
@@ -399,45 +399,45 @@ h_tau = T/N_tau;
 h_X   = b/N_X;
 h_ups = (d - c)/N_ups;
 
-Xs   = linspace(0, b, N_X + 1).';
-upss = linspace(c, d, N_ups + 1);
-H    = cond_ini(Xs, upss, K);
+X_vec   = linspace(0, b, N_X + 1).';
+ups_vec = linspace(c, d, N_ups + 1);
+H       = cond_ini(X_vec, ups_vec, K);
 
 for i_tau = 1:N_tau
-    H = euler_explicito(H, Xs, upss, h_tau, h_X, h_ups, ...
+    H = paso_euler_edp(H, X_vec, ups_vec, h_tau, h_X, h_ups, ...
                         sigma, kappa_tilde, theta_tilde, rho);
 end
 end
 
-function H = cond_ini(Xs, upss, K)
-N_ups = length(upss) - 1;
-H     = repmat(max(Xs - K, 0), 1, N_ups + 1);
+function H = cond_ini(X_vec, ups_vec, K)
+N_ups = length(ups_vec) - 1;
+H     = repmat(max(X_vec - K, 0), 1, N_ups + 1);
 H(1, :)   = 0;
-H(end, :) = max(Xs(end) - K, 0);
+H(end, :) = max(X_vec(end) - K, 0);
 end
 
-function V_out = interp_bil(H, Xs, upss, X_ref, ups_ref, r, T)
-N_rX  = length(X_ref);
-N_rU  = length(ups_ref);
-N_X   = length(Xs);
-N_ups = length(upss);
+function V_out = interp_precio_2D(H, X_vec, ups_vec, X_vec_ref, ups_vec_ref, r, T)
+N_rX  = length(X_vec_ref);
+N_rU  = length(ups_vec_ref);
+N_X   = length(X_vec);
+N_ups = length(ups_vec);
 V_out = zeros(N_rX, N_rU);
 
 for i_X = 1:N_rX
-    Xi = X_ref(i_X);
-    i0 = find(Xs <= Xi, 1, 'last');
+    Xi = X_vec_ref(i_X);
+    i0 = find(X_vec <= Xi, 1, 'last');
     if isempty(i0), i0 = 1; end
     if i0 >= N_X, i0 = N_X - 1; end
     i1 = i0 + 1;
-    tX = (Xi - Xs(i0))/(Xs(i1) - Xs(i0));
+    tX = (Xi - X_vec(i0))/(X_vec(i1) - X_vec(i0));
 
     for i_ups = 1:N_rU
-        upsi = ups_ref(i_ups);
-        j0 = find(upss <= upsi, 1, 'last');
+        upsi = ups_vec_ref(i_ups);
+        j0 = find(ups_vec <= upsi, 1, 'last');
         if isempty(j0), j0 = 1; end
         if j0 >= N_ups, j0 = N_ups - 1; end
         j1 = j0 + 1;
-        tu = (upsi - upss(j0))/(upss(j1) - upss(j0));
+        tu = (upsi - ups_vec(j0))/(ups_vec(j1) - ups_vec(j0));
 
         V_out(i_X, i_ups) = exp(-r*T)*( ...
             (1 - tX)*(1 - tu)*H(i0, j0) + tX*(1 - tu)*H(i1, j0) + ...
@@ -446,16 +446,16 @@ for i_X = 1:N_rX
 end
 end
 
-function H_new = euler_explicito(H, Xs, upss, h_tau, h_X, h_ups, ...
+function H_new = paso_euler_edp(H, X_vec, ups_vec, h_tau, h_X, h_ups, ...
                                  sigma, kappa_tilde, theta_tilde, rho)
-N_X   = length(Xs) - 1;
-N_ups = length(upss) - 1;
+N_X   = length(X_vec) - 1;
+N_ups = length(ups_vec) - 1;
 H_new = H;
 
 for i_X = 2:N_X
-    XiX = Xs(i_X);
+    XiX = X_vec(i_X);
     for i_ups = 2:N_ups
-        upsiups = upss(i_ups);
+        upsiups = ups_vec(i_ups);
 
         a_iX_iups = (h_tau/(2*h_X^2))*upsiups*XiX^2;
         b_iX_iups = (h_tau*rho*sigma*upsiups*XiX)/(4*h_X*h_ups);
@@ -478,8 +478,8 @@ end
 
 % Columna i_ups = 1
 for i_X = 2:N_X
-    XiX  = Xs(i_X);
-    upsc = upss(1);
+    XiX  = X_vec(i_X);
+    upsc = ups_vec(1);
 
     a_iX_cups = (h_tau/(2*h_X^2))*upsc*XiX^2;
     aux3      = (h_tau*kappa_tilde*(theta_tilde - upsc))/h_ups;
@@ -493,8 +493,8 @@ end
 
 % Columna i_ups = N_ups + 1
 for i_X = 2:N_X
-    XiX  = Xs(i_X);
-    upsd = upss(end);
+    XiX  = X_vec(i_X);
+    upsd = ups_vec(end);
 
     a_iX_dups = (h_tau/(2*h_X^2))*upsd*XiX^2;
     aux3      = (h_tau*kappa_tilde*(theta_tilde - upsd))/h_ups;

@@ -32,22 +32,22 @@ fecha_venc = datemnth(fecha_valo, round(T*12));
 
 N_lp      = 3000;
 t_eval    = 0.25;
-n_SDE     = 500;
+N_t_nube  = 500;
 p_vec     = [1, 2];
 Ng_vis    = 55;
-M_mc      = 8000;
-n_mc      = 200;
-dt_mc     = T/n_mc;
+N_tray    = 8000;
+N_t       = 200;
+dt        = T/N_t;
 descuento = exp(-r*T);
 
 %% Nube bajo Q
 
 rng(42);
-dt_nube  = t_eval/n_SDE;
+dt_nube  = t_eval/N_t_nube;
 S_nube   = S0*ones(N_lp, 1);
 ups_nube = ups0*ones(N_lp, 1);
 
-for paso = 1:n_SDE
+for paso = 1:N_t_nube
     dW1   = sqrt(dt_nube)*randn(N_lp, 1);
     dW2   = sqrt(dt_nube)*randn(N_lp, 1);
     ups_p = max(ups_nube, 0);
@@ -64,17 +64,17 @@ ups_nube = max(ups_nube, 0);
 S_lo   = quantile(S_nube,   0.01); S_hi   = quantile(S_nube,   0.99);
 ups_lo = quantile(ups_nube, 0.01); ups_hi = quantile(ups_nube, 0.99);
 
-S_vis   = linspace(S_lo,   S_hi,   Ng_vis).';
-ups_vis = linspace(ups_lo, ups_hi, Ng_vis).';
-[SS_vis, UU_vis] = meshgrid(S_vis, ups_vis);
-S_visv   = SS_vis(:);
-ups_visv = max(UU_vis(:), 0);
-N_vis    = length(S_visv);
+S_vec_vis   = linspace(S_lo,   S_hi,   Ng_vis).';
+ups_vec_vis = linspace(ups_lo, ups_hi, Ng_vis).';
+[S_mat_vis, ups_mat_vis] = meshgrid(S_vec_vis, ups_vec_vis);
+S_vis_flat   = S_mat_vis(:);
+ups_vis_flat = max(ups_mat_vis(:), 0);
+N_vis    = length(S_vis_flat);
 
 %% EDP: Diferencias Finitas Explicitas
 
-S_max_all   = max(max(S_nube),   max(S_visv));
-ups_max_all = max(max(ups_nube), max(ups_visv));
+S_max_all   = max(max(S_nube),   max(S_vis_flat));
+ups_max_all = max(max(ups_nube), max(ups_vis_flat));
 b_dom = max(S_max_all*exp(r*T)*1.5, 3*K*exp(r*T));
 c_dom = 0.001;
 d_dom = max(ups_max_all*1.5, 1.0);
@@ -90,48 +90,48 @@ h_tau  = 0.85/(ma_CFL + ms_CFL);
 N_tau  = ceil(T/h_tau);
 h_tau  = T/N_tau;
 
-Xs   = linspace(0,     b_dom, N_X   + 1).';
-upss = linspace(c_dom, d_dom, N_ups + 1);
+X_vec   = linspace(0,     b_dom, N_X   + 1).';
+ups_vec = linspace(c_dom, d_dom, N_ups + 1);
 
-H_call = repmat(max(Xs - K, 0), 1, N_ups + 1);
-H_put  = repmat(max(K - Xs, 0), 1, N_ups + 1);
+H_call = repmat(max(X_vec - K, 0), 1, N_ups + 1);
+H_put  = repmat(max(K - X_vec, 0), 1, N_ups + 1);
 H_call(1, :) = 0;  H_call(end, :) = max(b_dom - K, 0);
 H_put(1,  :) = K;  H_put(end,  :) = 0;
 
 for i_tau = 1:N_tau
-    H_call = euler_explicito(H_call, Xs, upss, h_tau, h_X, h_ups, ...
+    H_call = paso_euler_edp(H_call, X_vec, ups_vec, h_tau, h_X, h_ups, ...
                              sigma, kappa_tilde, theta_tilde, rho);
-    H_put  = euler_explicito(H_put,  Xs, upss, h_tau, h_X, h_ups, ...
+    H_put  = paso_euler_edp(H_put,  X_vec, ups_vec, h_tau, h_X, h_ups, ...
                              sigma, kappa_tilde, theta_tilde, rho);
 end
 
-F_EDP_call      = interpolacion_edp(S_nube,  ups_nube,  Xs, upss, H_call, r, T, b_dom, c_dom, d_dom);
-F_EDP_put       = interpolacion_edp(S_nube,  ups_nube,  Xs, upss, H_put,  r, T, b_dom, c_dom, d_dom);
-F_EDP_call_base = interpolacion_edp(S0,      ups0,      Xs, upss, H_call, r, T, b_dom, c_dom, d_dom);
-F_EDP_put_base  = interpolacion_edp(S0,      ups0,      Xs, upss, H_put,  r, T, b_dom, c_dom, d_dom);
-F_EDP_call_vis  = interpolacion_edp(S_visv,  ups_visv,  Xs, upss, H_call, r, T, b_dom, c_dom, d_dom);
-F_EDP_put_vis   = interpolacion_edp(S_visv,  ups_visv,  Xs, upss, H_put,  r, T, b_dom, c_dom, d_dom);
+precio_call_EDP      = interp_precio_2D(S_nube,  ups_nube,  X_vec, ups_vec, H_call, r, T, b_dom, c_dom, d_dom);
+precio_put_EDP       = interp_precio_2D(S_nube,  ups_nube,  X_vec, ups_vec, H_put,  r, T, b_dom, c_dom, d_dom);
+precio_call_EDP_base = interp_precio_2D(S0,      ups0,      X_vec, ups_vec, H_call, r, T, b_dom, c_dom, d_dom);
+precio_put_EDP_base  = interp_precio_2D(S0,      ups0,      X_vec, ups_vec, H_put,  r, T, b_dom, c_dom, d_dom);
+precio_call_EDP_vis  = interp_precio_2D(S_vis_flat,  ups_vis_flat,  X_vec, ups_vec, H_call, r, T, b_dom, c_dom, d_dom);
+precio_put_EDP_vis   = interp_precio_2D(S_vis_flat,  ups_vis_flat,  X_vec, ups_vec, H_put,  r, T, b_dom, c_dom, d_dom);
 
 %% EDE: Euler-Maruyama + Monte Carlo
 
 rng(1234);
-[F_EDE_call, F_EDE_put] = ede_lote(S_nube, ups_nube, M_mc, n_mc, dt_mc, descuento, ...
+[precio_call_EDE, precio_put_EDE] = simulacion_ede_lote(S_nube, ups_nube, N_tray, N_t, dt, descuento, ...
                                     K, kappa_tilde, theta_tilde, sigma, rho, r);
 
 rng(5678);
-payoff_call0 = zeros(M_mc, 1);
-payoff_put0  = zeros(M_mc, 1);
+payoff_call0 = zeros(N_tray, 1);
+payoff_put0  = zeros(N_tray, 1);
 
-for m = 1:M_mc
+for m = 1:N_tray
     St   = S0;
     upst = ups0;
 
-    for s = 1:n_mc
-        dW1   = sqrt(dt_mc)*randn;
-        dW2   = sqrt(dt_mc)*randn;
+    for s = 1:N_t
+        dW1   = sqrt(dt)*randn;
+        dW2   = sqrt(dt)*randn;
         ups_p = max(upst, 0);
-        St   = St   + r*St*dt_mc   + sqrt(ups_p)*St*dW1;
-        upst = ups_p + kappa_tilde*(theta_tilde - ups_p)*dt_mc ...
+        St   = St   + r*St*dt   + sqrt(ups_p)*St*dW1;
+        upst = ups_p + kappa_tilde*(theta_tilde - ups_p)*dt ...
              + sigma*rho*sqrt(ups_p)*dW1 ...
              + sigma*sqrt((1 - rho^2)*ups_p)*dW2;
     end
@@ -140,66 +140,66 @@ for m = 1:M_mc
     payoff_put0(m)  = max(K - St, 0);
 end
 
-F_EDE_call_base = descuento*mean(payoff_call0);
-F_EDE_put_base  = descuento*mean(payoff_put0);
+precio_call_EDE_base = descuento*mean(payoff_call0);
+precio_put_EDE_base  = descuento*mean(payoff_put0);
 
 rng(3333);
-[F_EDE_call_vis, F_EDE_put_vis] = ede_lote(S_visv, ups_visv, 4000, n_mc, dt_mc, descuento, ...
+[precio_call_EDE_vis, precio_put_EDE_vis] = simulacion_ede_lote(S_vis_flat, ups_vis_flat, 4000, N_t, dt, descuento, ...
                                             K, kappa_tilde, theta_tilde, sigma, rho, r);
 
 %% SA: Semi-Analitico 
 
-F_SA_call_base = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'call', K, ...
+precio_call_SA_base = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'call', K, ...
                                ups0, theta_tilde, kappa_tilde, sigma, rho, 'DividendYield', 0);
-F_SA_put_base  = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'put',  K, ...
+precio_put_SA_base  = optByHestonNI(r, S0, fecha_valo, fecha_venc, 'put',  K, ...
                                ups0, theta_tilde, kappa_tilde, sigma, rho, 'DividendYield', 0);
 
-F_SA_call = zeros(N_lp, 1);
-F_SA_put  = zeros(N_lp, 1);
+precio_call_SA = zeros(N_lp, 1);
+precio_put_SA  = zeros(N_lp, 1);
 
 for k = 1:N_lp
     upsk = max(ups_nube(k), 1e-6);
     Sk   = max(S_nube(k),   0.01);
     try
-        F_SA_call(k) = optByHestonNI(r, Sk, fecha_valo, fecha_venc, 'call', K, ...
+        precio_call_SA(k) = optByHestonNI(r, Sk, fecha_valo, fecha_venc, 'call', K, ...
                                      upsk, theta_tilde, kappa_tilde, sigma, rho, 'DividendYield', 0);
-        F_SA_put(k)  = optByHestonNI(r, Sk, fecha_valo, fecha_venc, 'put',  K, ...
+        precio_put_SA(k)  = optByHestonNI(r, Sk, fecha_valo, fecha_venc, 'put',  K, ...
                                      upsk, theta_tilde, kappa_tilde, sigma, rho, 'DividendYield', 0);
     catch
-        F_SA_call(k) = NaN;
-        F_SA_put(k)  = NaN;
+        precio_call_SA(k) = NaN;
+        precio_put_SA(k)  = NaN;
     end
 end
 
-F_SA_call_vis = zeros(N_vis, 1);
-F_SA_put_vis  = zeros(N_vis, 1);
+precio_call_SA_vis = zeros(N_vis, 1);
+precio_put_SA_vis  = zeros(N_vis, 1);
 
 for k = 1:N_vis
-    upsk = max(ups_visv(k), 1e-6);
-    Sk   = max(S_visv(k),   0.01);
+    upsk = max(ups_vis_flat(k), 1e-6);
+    Sk   = max(S_vis_flat(k),   0.01);
     try
-        F_SA_call_vis(k) = optByHestonNI(r, Sk, fecha_valo, fecha_venc, 'call', K, ...
+        precio_call_SA_vis(k) = optByHestonNI(r, Sk, fecha_valo, fecha_venc, 'call', K, ...
                                          upsk, theta_tilde, kappa_tilde, sigma, rho, 'DividendYield', 0);
-        F_SA_put_vis(k)  = optByHestonNI(r, Sk, fecha_valo, fecha_venc, 'put',  K, ...
+        precio_put_SA_vis(k)  = optByHestonNI(r, Sk, fecha_valo, fecha_venc, 'put',  K, ...
                                          upsk, theta_tilde, kappa_tilde, sigma, rho, 'DividendYield', 0);
     catch
-        F_SA_call_vis(k) = NaN;
-        F_SA_put_vis(k)  = NaN;
+        precio_call_SA_vis(k) = NaN;
+        precio_put_SA_vis(k)  = NaN;
     end
 end
 
 %% Norma L^p(Q)
 
-validos   = ~isnan(F_SA_call) & ~isnan(F_SA_put) & ...
-            ~isnan(F_EDE_call) & ~isnan(F_EDP_call) & F_SA_call > 1e-8;
+validos   = ~isnan(precio_call_SA) & ~isnan(precio_put_SA) & ...
+            ~isnan(precio_call_EDE) & ~isnan(precio_call_EDP) & precio_call_SA > 1e-8;
 N_validos = sum(validos);
 
-diff_EDE_SA_call  = abs(F_EDE_call(validos) - F_SA_call(validos));
-diff_EDP_SA_call  = abs(F_EDP_call(validos) - F_SA_call(validos));
-diff_EDE_EDP_call = abs(F_EDE_call(validos) - F_EDP_call(validos));
-diff_EDE_SA_put   = abs(F_EDE_put(validos)  - F_SA_put(validos));
-diff_EDP_SA_put   = abs(F_EDP_put(validos)  - F_SA_put(validos));
-diff_EDE_EDP_put  = abs(F_EDE_put(validos)  - F_EDP_put(validos));
+diff_EDE_SA_call  = abs(precio_call_EDE(validos) - precio_call_SA(validos));
+diff_EDP_SA_call  = abs(precio_call_EDP(validos) - precio_call_SA(validos));
+diff_EDE_EDP_call = abs(precio_call_EDE(validos) - precio_call_EDP(validos));
+diff_EDE_SA_put   = abs(precio_put_EDE(validos)  - precio_put_SA(validos));
+diff_EDP_SA_put   = abs(precio_put_EDP(validos)  - precio_put_SA(validos));
+diff_EDE_EDP_put  = abs(precio_put_EDE(validos)  - precio_put_EDP(validos));
 
 pares_call = {diff_EDE_SA_call,  'EDE vs SA'; ...
               diff_EDP_SA_call,  'EDP vs SA'; ...
@@ -238,28 +238,28 @@ colores = [0.1  0.1 0.1; ...
            0.1 0.1 0.1; ...
            0.1 0.1 0.1];
 
-SA_malla_call  = reshape(F_SA_call_vis,  Ng_vis, Ng_vis);
-EDE_malla_call = reshape(F_EDE_call_vis, Ng_vis, Ng_vis);
-EDP_malla_call = reshape(F_EDP_call_vis, Ng_vis, Ng_vis);
+SA_mat_call  = reshape(precio_call_SA_vis,  Ng_vis, Ng_vis);
+EDE_mat_call = reshape(precio_call_EDE_vis, Ng_vis, Ng_vis);
+EDP_mat_call = reshape(precio_call_EDP_vis, Ng_vis, Ng_vis);
 
-SA_malla_put   = reshape(F_SA_put_vis,   Ng_vis, Ng_vis);
-EDE_malla_put  = reshape(F_EDE_put_vis,  Ng_vis, Ng_vis);
-EDP_malla_put  = reshape(F_EDP_put_vis,  Ng_vis, Ng_vis);
+SA_mat_put   = reshape(precio_put_SA_vis,   Ng_vis, Ng_vis);
+EDE_mat_put  = reshape(precio_put_EDE_vis,  Ng_vis, Ng_vis);
+EDP_mat_put  = reshape(precio_put_EDP_vis,  Ng_vis, Ng_vis);
 
-err_EDE_call_vis     = abs(EDE_malla_call - SA_malla_call);  err_EDE_call_vis(isnan(err_EDE_call_vis))     = 0;
-err_EDP_call_vis     = abs(EDP_malla_call - SA_malla_call);  err_EDP_call_vis(isnan(err_EDP_call_vis))     = 0;
-err_EDE_EDP_call_vis = abs(EDE_malla_call - EDP_malla_call); err_EDE_EDP_call_vis(isnan(err_EDE_EDP_call_vis)) = 0;
-err_EDE_put_vis      = abs(EDE_malla_put  - SA_malla_put);   err_EDE_put_vis(isnan(err_EDE_put_vis))       = 0;
-err_EDP_put_vis      = abs(EDP_malla_put  - SA_malla_put);   err_EDP_put_vis(isnan(err_EDP_put_vis))       = 0;
-err_EDE_EDP_put_vis  = abs(EDE_malla_put  - EDP_malla_put);  err_EDE_EDP_put_vis(isnan(err_EDE_EDP_put_vis))  = 0;
+err_EDE_call_vis     = abs(EDE_mat_call - SA_mat_call);  err_EDE_call_vis(isnan(err_EDE_call_vis))     = 0;
+err_EDP_call_vis     = abs(EDP_mat_call - SA_mat_call);  err_EDP_call_vis(isnan(err_EDP_call_vis))     = 0;
+err_EDE_EDP_call_vis = abs(EDE_mat_call - EDP_mat_call); err_EDE_EDP_call_vis(isnan(err_EDE_EDP_call_vis)) = 0;
+err_EDE_put_vis      = abs(EDE_mat_put  - SA_mat_put);   err_EDE_put_vis(isnan(err_EDE_put_vis))       = 0;
+err_EDP_put_vis      = abs(EDP_mat_put  - SA_mat_put);   err_EDP_put_vis(isnan(err_EDP_put_vis))       = 0;
+err_EDE_EDP_put_vis  = abs(EDE_mat_put  - EDP_mat_put);  err_EDE_EDP_put_vis(isnan(err_EDE_EDP_put_vis))  = 0;
 
-[~, j_ups0] = min(abs(ups_vis - ups0));
+[~, j_ups0] = min(abs(ups_vec_vis - ups0));
 
 figure(1);
 subplot(1, 2, 1); hold on;
-p1 = plot(S_vis, SA_malla_call(j_ups0,:).', '-',  'Color', [0.9, 0.4, 0.4], 'LineWidth', 2.0);
-p2 = plot(S_vis, EDE_malla_call(j_ups0,:).','--', 'Color', [0.9, 0.4, 0.4], 'LineWidth', 1.8);
-p3 = plot(S_vis, EDP_malla_call(j_ups0,:).',':', 'Color', [0.9, 0.4, 0.4], 'LineWidth', 1.8);
+p1 = plot(S_vec_vis, SA_mat_call(j_ups0,:).', '-',  'Color', [0.9, 0.4, 0.4], 'LineWidth', 2.0);
+p2 = plot(S_vec_vis, EDE_mat_call(j_ups0,:).','--', 'Color', [0.9, 0.4, 0.4], 'LineWidth', 1.8);
+p3 = plot(S_vec_vis, EDP_mat_call(j_ups0,:).',':', 'Color', [0.9, 0.4, 0.4], 'LineWidth', 1.8);
 x1 = xline(K,  'k--', 'LineWidth', 1.2, 'HandleVisibility', 'off');
 x2 = xline(S0, 'k:',  'LineWidth', 1.2, 'HandleVisibility', 'off');
 xlabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
@@ -270,9 +270,9 @@ legend([p1, p2, p3, x1, x2], {'SA', 'EDE', 'EDP', '$K$', '$S_0$'}, 'Interpreter'
 grid on; axis square; hold off;
 
 subplot(1, 2, 2); hold on;
-p1 = plot(S_vis, SA_malla_put(j_ups0,:).', '-',  'Color', [0.4, 0.8, 0.4], 'LineWidth', 2.0);
-p2 = plot(S_vis, EDE_malla_put(j_ups0,:).','--', 'Color', [0.4, 0.8, 0.4], 'LineWidth', 1.8);
-p3 = plot(S_vis, EDP_malla_put(j_ups0,:).',':', 'Color', [0.4, 0.8, 0.4], 'LineWidth', 1.8);
+p1 = plot(S_vec_vis, SA_mat_put(j_ups0,:).', '-',  'Color', [0.4, 0.8, 0.4], 'LineWidth', 2.0);
+p2 = plot(S_vec_vis, EDE_mat_put(j_ups0,:).','--', 'Color', [0.4, 0.8, 0.4], 'LineWidth', 1.8);
+p3 = plot(S_vec_vis, EDP_mat_put(j_ups0,:).',':', 'Color', [0.4, 0.8, 0.4], 'LineWidth', 1.8);
 x1 = xline(K,  'k--', 'LineWidth', 1.2, 'HandleVisibility', 'off');
 x2 = xline(S0, 'k:',  'LineWidth', 1.2, 'HandleVisibility', 'off');
 xlabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
@@ -294,7 +294,7 @@ grid on; axis square; hold off;
 
 err_perfil_call = {err_EDE_call_vis(j_ups0,:).', ...
                    err_EDP_call_vis(j_ups0,:).', ...
-                   abs(EDE_malla_call(j_ups0,:).' - EDP_malla_call(j_ups0,:).')};
+                   abs(EDE_mat_call(j_ups0,:).' - EDP_mat_call(j_ups0,:).')};
 err_malla_call  = {err_EDE_call_vis, err_EDP_call_vis, err_EDE_EDP_call_vis};
 titulos_perfil  = {'EDE -- SA', 'EDP -- SA', 'EDE -- EDP'};
 titulos_mapa    = {'Mapa Error $|EDE - SA|$', 'Mapa Error $|EDP - SA|$', 'Mapa Error $|EDE - EDP|$'};
@@ -303,7 +303,7 @@ colores_cols    = [colores(1,:); colores(2,:); colores(3,:)];
 figure(3);
 for col = 1:3
     subplot(2, 3, col); hold on;
-    plot(S_vis, err_perfil_call{col}, '-', 'Color', colores_cols(col,:), 'LineWidth', 2.0);
+    plot(S_vec_vis, err_perfil_call{col}, '-', 'Color', colores_cols(col,:), 'LineWidth', 2.0);
     xlabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
     %ylabel(titulos_perfil{col}, 'Interpreter', 'latex');
     title(titulos_perfil{col}, 'Interpreter', 'latex', 'FontSize', 18);
@@ -312,7 +312,7 @@ for col = 1:3
 
     subplot(2, 3, col + 3);
     clim_val = quantile(err_malla_call{col}(:), 0.97);
-    imagesc(S_vis, ups_vis, err_malla_call{col}, [0, clim_val]);
+    imagesc(S_vec_vis, ups_vec_vis, err_malla_call{col}, [0, clim_val]);
     set(gca, 'FontSize', 18); 
     set(gca, 'YDir', 'normal'); colormap("gray"); colorbar;
     xlabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
@@ -361,9 +361,9 @@ fprintf('==============================================================\n');
 fprintf('Precio puntual en (S0, ups0):\n\n');
 fprintf('%-12s %12s %12s\n', 'Metodo', 'Call', 'Put');
 fprintf('%s\n', repmat('-', 1, 40));
-fprintf('%-12s %12.6f %12.6f\n', 'SA', F_SA_call_base, F_SA_put_base);
-fprintf('%-12s %12.6f %12.6f\n', 'EDE',      F_EDE_call_base, F_EDE_put_base);
-fprintf('%-12s %12.6f %12.6f\n', 'EDP',      F_EDP_call_base, F_EDP_put_base);
+fprintf('%-12s %12.6f %12.6f\n', 'SA', precio_call_SA_base, precio_put_SA_base);
+fprintf('%-12s %12.6f %12.6f\n', 'EDE',      precio_call_EDE_base, precio_put_EDE_base);
+fprintf('%-12s %12.6f %12.6f\n', 'EDP',      precio_call_EDP_base, precio_put_EDP_base);
 fprintf('--------------------------------------------------------------\n');
 fprintf('CALL - Norma L^p(Q):\n\n');
 fprintf('%-20s %12s %12s\n', 'Par de metodos', 'L^1(Q)', 'L^2(Q)');
@@ -383,18 +383,18 @@ fprintf('==============================================================\n');
 
 %% Funciones Locales
 
-function H_new = euler_explicito(H, Xs, upss, h_tau, h_X, h_ups, ...
+function H_new = paso_euler_edp(H, X_vec, ups_vec, h_tau, h_X, h_ups, ...
                                   sigma, kappa_tilde, theta_tilde, rho)
-N_X   = length(Xs)   - 1;
-N_ups = length(upss) - 1;
+N_X   = length(X_vec)   - 1;
+N_ups = length(ups_vec) - 1;
 H_new = H;
 
 % Nodos Interiores
 for i_X = 2:N_X
-    XiX = Xs(i_X);
+    XiX = X_vec(i_X);
 
     for i_ups = 2:N_ups
-        upsiups = upss(i_ups);
+        upsiups = ups_vec(i_ups);
         a = (h_tau/(2*h_X^2))*upsiups*XiX^2;
         b = (h_tau*rho*sigma*upsiups*XiX)/(4*h_X*h_ups);
         ts = (h_tau*sigma^2*upsiups)/(2*h_ups^2);
@@ -411,7 +411,7 @@ end
 
 % Columna i_ups = 1 (ups = c)
 for i_X = 2:N_X
-    XiX  = Xs(i_X); upsc = upss(1);
+    XiX  = X_vec(i_X); upsc = ups_vec(1);
     a  = (h_tau/(2*h_X^2))*upsc*XiX^2;
     td = (h_tau*kappa_tilde*(theta_tilde - upsc))/h_ups;
     e  = 1 - (h_tau/h_X^2)*upsc*XiX^2 - td;
@@ -420,7 +420,7 @@ end
 
 % Columna i_ups = N_ups + 1 (ups = d)
 for i_X = 2:N_X
-    XiX  = Xs(i_X); upsd = upss(end);
+    XiX  = X_vec(i_X); upsd = ups_vec(end);
     a  = (h_tau/(2*h_X^2))*upsd*XiX^2;
     td = (h_tau*kappa_tilde*(theta_tilde - upsd))/h_ups;
     e  = 1 - (h_tau/h_X^2)*upsd*XiX^2 + td;
@@ -428,7 +428,7 @@ for i_X = 2:N_X
 end
 end
 
-function F = interpolacion_edp(S_pts, ups_pts, Xs, upss, H, r, T, b_dom, c_dom, d_dom)
+function F = interp_precio_2D(S_pts, ups_pts, X_vec, ups_vec, H, r, T, b_dom, c_dom, d_dom)
 S_pts   = S_pts(:);
 ups_pts = ups_pts(:);
 X_pts   = exp(r*T)*S_pts;
@@ -436,11 +436,11 @@ Xc      = min(max(X_pts,   0),           b_dom - 1e-9);
 upsc    = min(max(ups_pts, c_dom + 1e-9), d_dom - 1e-9);
 F       = zeros(length(S_pts), 1);
 for k = 1:length(S_pts)
-    F(k) = interp2(upss, Xs, H, upsc(k), Xc(k), 'linear')*exp(-r*T);
+    F(k) = interp2(ups_vec, X_vec, H, upsc(k), Xc(k), 'linear')*exp(-r*T);
 end
 end
 
-function [Fc, Fp] = ede_lote(S_pts, ups_pts, M_mc, n_mc, dt_mc, descuento, ...
+function [Fc, Fp] = simulacion_ede_lote(S_pts, ups_pts, N_tray, N_t, dt, descuento, ...
                               K, kappa_tilde, theta_tilde, sigma, rho, r)
 N_pts = length(S_pts);
 blk   = 50;
@@ -454,17 +454,17 @@ for b = 1:n_b
     np = i1 - i0 + 1;
     Sb = S_pts(i0:i1).';
     Ub = ups_pts(i0:i1).';
-    payoff_c = zeros(M_mc, np);
-    payoff_p = zeros(M_mc, np);
+    payoff_c = zeros(N_tray, np);
+    payoff_p = zeros(N_tray, np);
     
-    for m = 1:M_mc
+    for m = 1:N_tray
         Sm = Sb; Um = Ub;
-        for s = 1:n_mc
-            dW1   = sqrt(dt_mc)*randn(1, np);
-            dW2   = sqrt(dt_mc)*randn(1, np);
+        for s = 1:N_t
+            dW1   = sqrt(dt)*randn(1, np);
+            dW2   = sqrt(dt)*randn(1, np);
             ups_p = max(Um, 0);
-            Sm    = Sm + r*Sm.*dt_mc + sqrt(ups_p).*Sm.*dW1;
-            Um    = ups_p + kappa_tilde*(theta_tilde - ups_p)*dt_mc ...
+            Sm    = Sm + r*Sm.*dt + sqrt(ups_p).*Sm.*dW1;
+            Um    = ups_p + kappa_tilde*(theta_tilde - ups_p)*dt ...
                   + sigma*rho*sqrt(ups_p).*dW1 ...
                   + sigma*sqrt((1 - rho^2)*ups_p).*dW2;
         end
