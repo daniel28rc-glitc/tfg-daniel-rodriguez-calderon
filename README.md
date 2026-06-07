@@ -1,17 +1,18 @@
 # TFG - Daniel Rodríguez Calderón
 
-Este repositorio contiene los scripts implementados en MATLAB para el Trabajo de Fin de Grado de Daniel Rodríguez Calderón. Los códigos incluyen diversas simulaciones y cálculos enfocados en ecuaciones diferenciales estocásticas, derivadas parciales o soluciones semi-analíticas.
+Este repositorio contiene los scripts implementados en MATLAB para el Trabajo de Fin de Grado de Daniel Rodríguez Calderón. Los códigos incluyen diversas simulaciones y cálculos enfocados en el sistema de ecuaciones diferenciales estocásticas, la ecuación en derivadas parciales asociada o las soluciones semi-analíticas del modelo de Heston.
 
 ## Archivos del repositorio
 
-- **movbrown.m**: Script enfocado en la simulación matemática y generación de múltiples trayectorias de movimientos brownianos, permitiendo visualizar distintas trayectorias.
-- **EDE.m**: Implementa la valoración de opciones europeas en el Modelo de Heston utilizando el método de Euler-Maruyama combinado con simulaciones de Monte Carlo.
-- **EDP.m**: Desarrolla la valoración de opciones europeas en el Modelo de Heston mediante un método en Ecuaciones en Derivadas Parciales (EDP), utilizando Euler explícito con diferencias finitas.
-- **SA.m**: Realiza la valoración de opciones europeas en el Modelo de Heston utilizando un método semi-analítico basado en integración numérica.
-- **compLp.m**: Compara diferentes métodos de valoración en el Modelo de Heston mediante el cálculo de la norma $\mathcal{L}^p(Q)$ utilizando el teorema de Feynman-Kac.
-- **ordEDE.m**: Script auxiliar que calcula los órdenes de convergencia del método de Euler-Maruyama junto con Monte Carlo.
-- **ordEDP.m**: Script auxiliar que evalúa los órdenes de convergencia del método en EDP mediante diferencias finitas.
-- **mallaEDP.m**: Dibuja de forma generalizada el esquema discreto de evalución del método en EDP.
+- **movbrown.m**: Script enfocado en la simulación matemática y generación de múltiples trayectorias de movimientos brownianos.
+- **mallaEDP.m**: Código que dibuja de forma generalizada el dominio truncado de evalución del método EDP.
+- **EDP.m**: Archivo que desarrolla la valoración de opciones europeas mediante el método EDP.
+- **EDE.m**: Script que implementa la valoración de opciones europeas mediante el método EDE.
+- **SA.m**: Código que realiza la valoración de opciones europeas mediante el método SA.
+- **ordEDP.m**: Archivo que evalúa los órdenes de convergencia espacio-temporales del método EDP.
+- **ordEDE.m**: Script que calcula los órdenes de convergencia fuertes y débiles del método EDE.
+- **compLp.m**: Código que compara los diferentes métodos de valoración: EDP, EDE y SA.
+
 ## Requisitos de uso
 
 Para ejecutar correctamente los archivos de este repositorio, es necesario:
