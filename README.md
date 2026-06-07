@@ -5,7 +5,7 @@ Este repositorio contiene los scripts implementados en MATLAB para el Trabajo de
 ## Archivos del repositorio
 
 - **movbrown.m**: Script enfocado en la simulación matemática y generación de múltiples trayectorias de movimientos brownianos.
-- **mallaEDP.m**: Código que dibuja de forma generalizada el dominio truncado de evalución del método EDP.
+- **mallaEDP.m**: Código que dibuja de forma generalizada el dominio truncado de evalución para el método EDP.
 - **EDP.m**: Archivo que desarrolla la valoración de opciones europeas mediante el método EDP.
 - **EDE.m**: Script que implementa la valoración de opciones europeas mediante el método EDE.
 - **SA.m**: Código que realiza la valoración de opciones europeas mediante el método SA.
