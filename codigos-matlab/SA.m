@@ -70,7 +70,7 @@ colormap(sub1, autumn); shading faceted;
 plot3(ups0, S0, precio_call, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k'); 
 xlabel('$\upsilon$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
-zlabel('$C$', 'Interpreter', 'latex', 'FontSize', 18);
+zlabel('$C^{\textrm{SA}}(0,S,\upsilon)$', 'Interpreter', 'latex', 'FontSize', 18);
 set(gca, 'FontSize', 18); 
 %title('Superficie de Precios Call');
 %colorbar
@@ -82,7 +82,7 @@ colormap(sub2, summer); shading faceted;
 plot3(ups0, S0, precio_put, 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'k'); 
 xlabel('$\upsilon$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
-zlabel('$P$', 'Interpreter', 'latex', 'FontSize', 18);
+zlabel('$P^{\hspace{0.3mm} \textrm{SA}}(0,S,\upsilon)$', 'Interpreter', 'latex', 'FontSize', 18);
 set(gca, 'FontSize', 18); 
 %title('Superficie de Precios Put');
 %colorbar

@@ -266,7 +266,7 @@ xlabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$\textit{Call}$', 'Interpreter', 'latex', 'FontSize', 18);
 %title(sprintf('Perfil Call ($\\upsilon_0 = %.4f$)', ups0), 'Interpreter', 'latex');
 set(gca, 'FontSize', 18); 
-legend([p1, p2, p3, x1, x2], {'SA', 'EDE', 'EDP', '$K$', '$S_0$'}, 'Interpreter', 'latex', 'FontSize', 18);
+legend([p1, p2, p3, x1, x2], {'SA', 'EDE$\ $ ', 'EDP$\ $ ', '$K$', '$S_0$'}, 'Interpreter', 'latex', 'FontSize', 18);
 grid on; axis square; hold off;
 
 subplot(1, 2, 2); hold on;
@@ -279,7 +279,7 @@ xlabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$\textit{Put}$', 'Interpreter', 'latex', 'FontSize', 18);
 set(gca, 'FontSize', 18); 
 %title(sprintf('Perfil Put ($\\upsilon_0 = %.4f$)', ups0), 'Interpreter', 'latex');
-legend([p1, p2, p3, x1, x2], {'SA', 'EDE', 'EDP', '$K$', '$S_0$'}, 'Interpreter', 'latex', 'FontSize', 18);
+legend([p1, p2, p3, x1, x2], {'SA', 'EDE$\ $ ', 'EDP$\ $ ', '$K$', '$S_0$'}, 'Interpreter', 'latex', 'FontSize', 18);
 grid on; axis square; hold off;
 
 figure(2); hold on;
@@ -289,7 +289,7 @@ xlabel('$S$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$\upsilon$', 'Interpreter', 'latex', 'FontSize', 18);
 %title('Nube Simulada bajo Medida Neutral', 'Interpreter', 'latex');
 set(gca, 'FontSize', 18); 
-legend([p1, p2], {'$(S_0,\,\upsilon_0)$ ', 'Nube de Puntos'}, 'Interpreter', 'latex', 'FontSize', 18);
+legend([p1, p2], {'$(S_0,\,\upsilon_0)$ ', 'Nube de Puntos$\ $'}, 'Interpreter', 'latex', 'FontSize', 18);
 grid on; axis square; hold off;
 
 err_perfil_call = {err_EDE_call_vis(j_ups0,:).', ...
@@ -332,10 +332,10 @@ for col = 1:3
     subplot(1, 3, col); hold on;
     plot(p_range, Lp_curva_call(col,:), estilos{col}, 'Color',...
         colores_cols(col,:), 'LineWidth', 2, 'MarkerSize', 5,...
-        'DisplayName', '$\textit{Call}$');
+        'DisplayName', '$\textit{Call}\ $ ');
     plot(p_range, Lp_curva_put(col,:), estilos{col}, 'Color',...
         colores_cols(col,:), 'LineWidth', 2, 'MarkerSize', 5,...
-        'LineStyle', '--', 'DisplayName', '$\textit{Put}$');
+        'LineStyle', '--', 'DisplayName', '$\textit{Put}\ $ ');
     %if col == 1
     %    ylabel('$\|EDE - SA\|_{L^p(Q)}$', 'Interpreter', 'latex');
     %elseif col == 2
@@ -346,7 +346,7 @@ for col = 1:3
     xlabel('$p$', 'Interpreter', 'latex', 'FontSize', 18);
     title(titulos_perfil{col}, 'Interpreter', 'latex', 'FontSize', 18);
     set(gca, 'FontSize', 18); 
-    legend('Interpreter', 'latex', 'FontSize', 18);
+    legend('Interpreter', 'latex', 'FontSize', 18, 'Location', 'northwest');
     grid on; axis square; hold off;
 end
 

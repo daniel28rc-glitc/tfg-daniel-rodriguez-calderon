@@ -205,10 +205,10 @@ call_conv = descuento*cumsum(payoff_call)./(1:N_tray).';
 semilogx(1:N_tray, call_conv, 'Color', [0.9, 0.4, 0.4]);
 yline(precio_call, '--', 'Color', [0.4, 0.4, 0.4]);
 xlabel('$n_{T}$', 'Interpreter', 'latex', 'FontSize', 18);
-ylabel('$\hat{C}_{n_{T}}$', 'Interpreter', 'latex', 'FontSize', 18);
+%ylabel('$\widehat{C}_{n_{T}}(0,S_0,\upsilon_0)$', 'Interpreter', 'latex', 'FontSize', 18);
 %title('Convergencia del Estimador de Monte Carlo');
 set(gca, 'FontSize', 18);  axis square;
-legend({'$\hat{C}_{n_{T}}$', '$C_0$'}, ...
+legend({'$\widehat{C}^{\hspace{0.3mm}\textrm{EDE}}_{n_{T}}\hspace{0.1mm}(0,S_0,\upsilon_0)$ ', '$C_0$'}, ...
     'Interpreter', 'latex', 'FontSize', 18);
 
 figure(3); subplot(1,2,2); hold on; grid on;
@@ -216,10 +216,10 @@ put_conv = descuento*cumsum(payoff_put)./(1:N_tray).';
 semilogx(1:N_tray, put_conv, 'Color', [0.4, 0.8, 0.4]);
 yline(precio_put, '--', 'Color', [0.4, 0.4, 0.4]);
 xlabel('$n_{T}$', 'Interpreter', 'latex', 'FontSize', 18);
-ylabel('$\hat{P}_{n_{T}}$', 'Interpreter', 'latex', 'FontSize', 18);
+%ylabel('$\widehat{P}_{n_{T}}(0,S_0,\upsilon_0)$', 'Interpreter', 'latex', 'FontSize', 18);
 %title('Convergencia del Estimador de Monte Carlo');
 set(gca, 'FontSize', 18);  axis square;
-legend({'$\hat{P}_{n_{T}}$', '$P_0$'}, ...
+legend({'$\widehat{P}^{\hspace{0.3mm}\textrm{EDE}}_{n_{T}}\hspace{0.1mm}(0,S_0,\upsilon_0)$ ', '$P_0$'}, ...
     'Interpreter', 'latex', 'FontSize', 18);
 
 %% Mostrar Resultados
