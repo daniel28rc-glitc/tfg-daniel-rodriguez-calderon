@@ -184,21 +184,21 @@ legend({'$\# S_T$', '$K$', '$\bar{S_T}$', '$\tilde{S_T}$'}, ...
     'Interpreter', 'latex', 'FontSize', 18);
 
 figure(2); subplot(1,2,2); hold on; grid on;
-%a_cir = 2*kappa_tilde*theta_tilde/sigma^2;
-%b_cir = sigma^2/(2*kappa_tilde);
-%x_cir = linspace(0, max(ups_T)*1.5, 200);
-%pdf_cir = x_cir.^(a_cir-1).*exp(-x_cir/b_cir)/(b_cir^a_cir*gamma(a_cir));
+a_cir = 2*kappa_tilde*theta_tilde/sigma^2;
+b_cir = sigma^2/(2*kappa_tilde);
+x_cir = linspace(0, max(ups_T)*1.5, 200);
+pdf_cir = x_cir.^(a_cir-1).*exp(-x_cir/b_cir)/(b_cir^a_cir*gamma(a_cir));
 
-histogram(ups_T, 30, 'Normalization', 'count', 'FaceColor', [0.1 0.35 0.62], 'EdgeColor', 'w');
-%plot(x_cir, pdf_cir, 'k', 'LineWidth', 2);
+histogram(ups_T, 30, 'Normalization', 'pdf', 'FaceColor', [0.1 0.35 0.62], 'EdgeColor', 'w');
+plot(x_cir, pdf_cir, 'k', 'LineWidth', 2);
 xline(theta_tilde, '--', 'Color', [0.3, 0.3, 0.3]); axis square;
 xlabel('$\upsilon_T$', 'Interpreter', 'latex', 'FontSize', 18);
 ylabel('$\# \upsilon_T$', 'Interpreter', 'latex', 'FontSize', 18);
 %title(sprintf('Distribucion $\\upsilon_t$ - %d trayectorias', N_tray), ...
 %'Interpreter', 'latex'); 
 set(gca, 'FontSize', 18); axis square;
-legend({'$\# \upsilon_T$', '$\tilde{\theta}$'}, ...
-    'Interpreter', 'latex', 'FontSize', 18);
+legend({'$\# \upsilon_T$', '$\Gamma(x; a_{\mathrm{CIR}}, b_{\mathrm{CIR}})$', ...
+    '$\tilde{\theta}$'}, 'Interpreter', 'latex', 'FontSize', 18);
 
 figure(3); subplot(1,2,1); hold on; grid on;
 call_conv = descuento*cumsum(payoff_call)./(1:N_tray).';
